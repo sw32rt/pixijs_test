@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "lib": ["es2020", "dom"],
+    "jsx": "react",
+    "sourceMap": true,
+    "outDir": "./out",
+    "rootDir": "./src",
+    "strict": false,
+    "moduleResolution": "Node",
+    "baseUrl": "src",
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["./src/**/*", "./node_modules/", "./node_modules/pixi.js/dist"],
+  "exclude": ["out", "node_modules"],
+  "compileOnSave": true
+}
