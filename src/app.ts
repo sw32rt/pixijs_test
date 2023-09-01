@@ -1,11 +1,11 @@
 /// <reference path="util.ts">
-// <reference path="../node_modules/pixi.js/dist/pixi.mjs">
-// <reference path="../node_modules/@pixi/graphics-extras/lib/index.mjs">
 
-// import * as PIXI from '../node_modules/pixi.js/dist/pixi.mjs';
-// import '../node_modules/@pixi/graphics-extras/lib/index.mjs';
 import * as PIXI from 'pixi.js';
 import '@pixi/graphics-extras';
+import { Viewport } from "pixi-viewport";
+
+const WORLD_WIDTH = 2000
+const WORLD_HEIGHT = 2000
 
 var input = "      asdf //comments         "
 var trimStr = trimLeft(input);
@@ -13,12 +13,6 @@ var trimStr = trimLeft(input);
 
 trimStr = myapp.util.strings.trimRight(input)
 // alert(trimStr)
-
-// // PIXI.JSアプリケーションを呼び出す (この数字はゲーム内の画面サイズ)
-// const pixiApp = new PIXI.Application({ width: 400, height: 600 });
-
-// // index.htmlのbodyにapp.viewを追加する (app.viewはcanvasのdom要素)
-// document.body.appendChild(pixiApp.view);
 
 const app = new PIXI.Application<HTMLCanvasElement>({
   width: 1920,
@@ -29,107 +23,167 @@ app.view.style.width = '100%';
 app.view.style.height = 'auto';
 document.body.appendChild(app.view);
 
-// import * as PIXI from 'pixi.js';
-// import '@pixi/graphics-extras';
+const viewport = new Viewport({
+  worldWidth: WORLD_WIDTH,
+  worldHeight: WORLD_HEIGHT,
+  // screenWidth: window.innerWidth,
+  // screenHeight: window.innerHeight,
+  events: app.renderer.events,
+})
+  // .drag({mouseButtons:'right-middle'})
+  .drag()
+  .pinch({ percent: 2 })
+  .wheel()
+  .decelerate();
 
-// const app = new PIXI.Application({ antialias: true, resizeTo: window });
+// fit and center the world into the panel
+viewport.fit()
+viewport.moveCenter(WORLD_WIDTH / 2, WORLD_HEIGHT / 2)
 
-// document.body.appendChild(app.view);
+app.stage.addChild(viewport);
+app.ticker.start();
+
+const onResize = () => {
+  app.renderer.resize(window.innerWidth, window.innerHeight);
+  viewport.resize(window.innerWidth, window.innerHeight);
+};
+window.addEventListener("resize", onResize);
+viewport.eventMode = 'static'
+
+app.stage.addChild(viewport)
 
 const graphics = new PIXI.Graphics();
 
-// Rectangle
-graphics.beginFill(0xDE3249);
-graphics.drawRect(50, 50, 100, 100);
-graphics.endFill();
-
-// Rectangle + line style 1
-graphics.lineStyle(2, 0xFEEB77, 1);
-graphics.beginFill(0x650A5A);
-graphics.drawRect(200, 50, 100, 100);
-graphics.endFill();
-
-// Rectangle + line style 2
-graphics.lineStyle(10, 0xFFBD01, 1);
-graphics.beginFill(0xC34288);
-graphics.drawRect(350, 50, 100, 100);
-graphics.endFill();
-
-// Rectangle 2
-graphics.lineStyle(2, 0xFFFFFF, 1);
-graphics.beginFill(0xAA4F08);
-graphics.drawRect(530, 50, 140, 100);
-graphics.endFill();
-
-// Circle
-graphics.lineStyle(0); // draw a circle, set the lineStyle to zero so the circle doesn't have an outline
-graphics.beginFill(0xDE3249, 1);
-graphics.drawCircle(100, 250, 50);
-graphics.endFill();
-
-// Circle + line style 1
-graphics.lineStyle(2, 0xFEEB77, 1);
-graphics.beginFill(0x650A5A, 1);
-graphics.drawCircle(250, 250, 50);
-graphics.endFill();
-
-// Circle + line style 2
-graphics.lineStyle(10, 0xFFBD01, 1);
-graphics.beginFill(0xC34288, 1);
-graphics.drawCircle(400, 250, 50);
-graphics.endFill();
-
-// Ellipse + line style 2
-graphics.lineStyle(2, 0xFFFFFF, 1);
-graphics.beginFill(0xAA4F08, 1);
-graphics.drawEllipse(600, 250, 80, 50);
-graphics.endFill();
-
-// draw a shape
-graphics.beginFill(0xFF3300);
-graphics.lineStyle(4, 0xffd900, 1);
-graphics.moveTo(50, 350);
-graphics.lineTo(250, 350);
-graphics.lineTo(100, 400);
-graphics.lineTo(50, 350);
-graphics.closePath();
-graphics.endFill();
-
-// draw a rounded rectangle
-graphics.lineStyle(2, 0xFF00FF, 1);
-graphics.beginFill(0x650A5A, 0.25);
-graphics.drawRoundedRect(50, 440, 100, 100, 16);
-graphics.endFill();
-
-// draw star
-graphics.lineStyle(2, 0xFFFFFF);
-graphics.beginFill(0x35CC5A, 1);
-graphics.drawStar(360, 370, 5, 50, 100);
-graphics.endFill();
-
-// draw star 2
-graphics.lineStyle(2, 0xFFFFFF);
-graphics.beginFill(0xFFCC5A, 1);
-graphics.drawStar(280, 510, 7, 50, 10);
-graphics.endFill();
-
-// draw star 3
-graphics.lineStyle(4, 0xFFFFFF);
-graphics.beginFill(0x55335A, 1);
-graphics.drawStar(470, 450, 4, 50, 10);
-graphics.endFill();
-
-// draw polygon
-const path = [600, 370, 700, 460, 780, 420, 730, 570, 590, 520];
-
-graphics.lineStyle(0);
-graphics.beginFill(0x3500FA, 1);
-graphics.drawPolygon(path);
-graphics.endFill();
-
-app.stage.addChild(graphics);
+// create a texture from an image path
+const texture = PIXI.Texture.from('https://pixijs.com/assets/bunny.png');
 
 
+// Scale mode for pixelation
+texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 
+for (let i = 0; i < 3; i++)
+{
+    createBunny(
+        Math.floor(Math.random() * app.screen.width),
+        Math.floor(Math.random() * app.screen.height),
+    );
 
+    createDraggerbleRect(
+      Math.floor(Math.random() * app.screen.width),
+      Math.floor(Math.random() * app.screen.height),
+  );
+    
+}
+
+function createDraggerbleRect(x, y)
+{
+  graphics.lineStyle(10, 0xFFBD01, 1);
+  graphics.beginFill(0xC34288);
+  graphics.drawRect(0, 0, 30, 30);
+  graphics.endFill();
+  const tex = app.renderer.generateTexture(graphics)
+  const grSprite = new PIXI.Sprite(tex)
+  grSprite.eventMode = 'static';
+  grSprite.cursor = 'pointer'
+  grSprite.anchor.set(0.5);
+  grSprite.on('pointerdown', onDragStart, grSprite);
+  grSprite.on('pointerup', onDragEnd);
+  grSprite.on('pointerupoutside', onDragEnd);
+  grSprite.x = x
+  grSprite.y = y
+  viewport.addChild(grSprite)
+  
+}
+
+function createBunny(x, y)
+{
+    // create our little bunny friend..
+    const bunny = new PIXI.Sprite(texture);
+
+    // enable the bunny to be interactive... this will allow it to respond to mouse and touch events
+    bunny.eventMode = 'static';
+
+    // this button mode will mean the hand cursor appears when you roll over the bunny with your mouse
+    bunny.cursor = 'pointer';
+
+    // center the bunny's anchor point
+    bunny.anchor.set(0.5);
+
+    // make it a bit bigger, so it's easier to grab
+    bunny.scale.set(3);
+
+    // setup events for mouse + touch using
+    // the pointer events
+    bunny.on('pointerdown', onDragStart, bunny);
+    bunny.on('pointerup', onDragEnd);
+    bunny.on('pointerupoutside', onDragEnd);
+    // bunny.on('pointermove', onDragMove);
+
+    // move the sprite to its designated position
+    bunny.x = x;
+    bunny.y = y;
+
+    // add it to the stage
+    viewport.addChild(bunny);
+}
+
+let dragTarget = null;
+
+// viewport.eventMode = 'static';
+// viewport.hitArea = app.screen;
+// // app.stage.on('pointerdown', onDragStart_p, app.stage);
+// viewport.on('pointerup', onDragEnd);
+// viewport.on('pointerupoutside', onDragEnd);
+// viewport.on('pointerdown', onDragStart, viewport);
+
+function onDragMove_this(event)
+{
+    if (dragTarget)
+    {
+        // dragTarget.toLocal(event.global, null, dragTarget.position);
+    }
+}
+
+function onDragMove(event)
+{
+    if (dragTarget)
+    {
+        dragTarget.parent.toLocal(event.global, null, dragTarget.position);
+        // dragTarget.toLocal(event.global, null, dragTarget.position);
+    }
+}
+
+function onDragStart_p()
+{
+    // store a reference to the data
+    // the reason for this is because of multitouch
+    // we want to track the movement of this particular touch
+    // this.data = event.data;
+    // this.alpha = 0.5;
+    // dragTarget = this;
+    // app.stage.on('pointermove', onDragMove_this);
+}
+
+function onDragStart()
+{
+    viewport.parent.interactive = false
+    // store a reference to the data
+    // the reason for this is because of multitouch
+    // we want to track the movement of this particular touch
+    // this.data = event.data;
+    this.alpha = 0.5;
+    dragTarget = this;
+    dragTarget.parent.on('pointermove', onDragMove);
+}
+
+function onDragEnd()
+{
+    if (dragTarget)
+    {
+        dragTarget.parent.off('pointermove', onDragMove);
+        dragTarget.alpha = 1;
+        dragTarget = null;
+        viewport.parent.interactive = true
+      }
+}
 
