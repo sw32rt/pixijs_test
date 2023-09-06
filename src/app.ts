@@ -60,22 +60,84 @@ box.on('pointerdown', onDragStart, box);
 box.on('pointerup', onDragEnd);
 box.on('pointerupoutside', onDragEnd);
 
+let linepath: { x: number; y: number; index: number }[] = []
+let linepath_sortByX: { x: number; y: number; index: number }[] = []
+let linepath_sortByY: { x: number; y: number; index: number }[] = []
+
+function pointv() {
+  const points = line.geometry.points
+  const dots = points.length / 2;
+  const dot = new PIXI.Graphics();
+  dot.lineStyle(0.1, 0x000080)
+
+  for (let index = 0; index < points.length; index += 2) {
+    const x = points[index];
+    const y = points[index + 1];
+    dot.drawCircle(x, y, 2);
+
+  }
+  viewport.addChild(dot)
+
+  const path: { x: number; y: number; }[] = []
+  linepath = []
+  let i = 0;
+  for (let index = 0; index < points.length; index += 4) {
+    const x_odd = points[index + 0]
+    const y_odd = points[index + 1]
+    const x_even = points[index + 2]
+    const y_even = points[index + 3]
+
+    const x_center = (x_odd + x_even) / 2
+    const y_center = (y_odd + y_even) / 2
+    path.push({ x: x_center, y: y_center })
+    linepath.push({ x: x_center, y: y_center, index: i })
+    i++
+  }
+  // linepath_sortByX = [...linepath].sort()
+
+  const gr = new PIXI.Graphics()
+  gr.lineStyle(0.1, 0x808000)
+  gr.moveTo(path[0].x, path[0].y)
+  path.forEach(element => {
+    gr.lineTo(element.x, element.y)
+  });
+  viewport.addChild(gr)
+
+}
+
+
+
+
 const line = new PIXI.Graphics();
-line.interactive = true;
-line.cursor = 'pointer'
-line.moveTo(100, 100)
-line.lineStyle(30, 0x000000);
+
+// line.interactive = true;
+// line.cursor = 'pointer'
+line.moveTo(100, 0)
+line.lineStyle(50, 0x90D090);
 // line.lineTo(100, 360);
 // line.lineTo(200, 200)
-line.arc(280, 180, 60, Math.PI * 3 / 2, Math.PI * 3)
+line.quadraticCurveTo(120, 380, 300, 500)
+line.quadraticCurveTo(520, 580, 300, 300)
+// line.arcTo(300, 500, 500, 600, Math.PI * 3)
 line.lineStyle();
 viewport.addChild(line)
 line.on('pointerdown', onDragStart, line);
 line.on('pointerup', onDragEnd);
 line.on('pointerupoutside', onDragEnd);
 line.on('pointermove', onDragMove)
+console.log(line.geometry.points)
 // line.containsPoint()
 
+// const tex = pixiApp.renderer.generateTexture(line)
+// const grSprite = new PIXI.Sprite(tex)
+// grSprite.eventMode = 'static';
+// grSprite.cursor = 'pointer'
+// grSprite.x = 500
+// grSprite.y = 500
+// grSprite.on('pointerdown', onDragStart, grSprite);
+// grSprite.on('pointerup', onDragEnd);
+// grSprite.on('pointerupoutside', onDragEnd);
+// viewport.addChild(grSprite)
 
 line.hitArea = {
   contains: (x: number, y: number) => {
@@ -95,6 +157,112 @@ line.hitArea = {
     }
     return new PIXI.Polygon([...od, ...even.reverse()]).contains(x, y)
   },
+}
+
+viewport.on('pointermove', onPointerMove)
+
+const pointerCircle = new PIXI.Graphics()
+pointerCircle.lineStyle(1, 0x000000)
+pointerCircle.drawCircle(0, 0, 20)
+viewport.addChild(pointerCircle)
+
+const Rlines = new PIXI.Graphics();
+Rlines.lineStyle(1, 0x000000, 0.8);
+viewport.addChild(Rlines);
+
+function onPointerMove(event) {
+  const newPoint = event.getLocalPosition(this);
+  pointerCircle.x = newPoint.x
+  pointerCircle.y = newPoint.y
+
+  let dlist: { d: number, index: number }[] = []
+  Rlines.clear();
+  Rlines.lineStyle(1, 0x000000, 0.8);
+  /* path割 */
+  let divpath: { x: number; y: number; index: number }[] = []
+  let newindex: number = 0
+  for (let i = 0; i < linepath.length - 1; i++) {
+    const e = linepath[i];
+    e.index = newindex
+    newindex++;
+    divpath.push(e)
+    const xdiff = linepath[i + 1].x - linepath[i].x
+    const ydiff = linepath[i + 1].y - linepath[i].y
+    const gtdiff = Math.max(Math.abs(xdiff), Math.abs(ydiff))
+    const threshold = 20
+    const div = Math.floor(gtdiff / threshold)
+    for (let divCount = 0; divCount < div - 1; divCount++) {
+      let d: { x: number; y: number; index: number } = { x: 0, y: 0, index: 0 };
+      d.x = linepath[i].x + ((xdiff / div) * (divCount + 1));
+      d.y = linepath[i].y + ((ydiff / div) * (divCount + 1));
+      d.index = newindex;
+      divpath.push(d)
+      newindex++;
+    }
+  }
+  const d = linepath[linepath.length - 1]
+  d.index = newindex
+  divpath.push(d)
+
+  divpath.forEach(element => {
+    const dist = Math.sqrt(((element.x - newPoint.x) ** 2 + (element.y - newPoint.y) ** 2))
+    dlist.push({ d: dist, index: element.index })
+  });
+
+  dlist.sort((a, b) => (a.d - b.d))
+
+  for (let i = 0; i < 2; i++) {
+    const element = divpath[dlist[i].index];
+    if (dlist[i].d > 30.0) {
+      break;
+    }
+    // Rlines.moveTo(newPoint.x, newPoint.y)
+    // Rlines.lineTo(element.x, element.y)
+    if (i == 1) {
+      const A = divpath[dlist[0].index]
+      const B = divpath[dlist[1].index]
+      const H = getPerpendicular(A.x, A.y, B.x, B.y, newPoint.x, newPoint.y)
+
+      if (judgeIentersected(A.x, A.y, B.x, B.y, newPoint.x, newPoint.y, H.x, H.y)) {
+        Rlines.drawCircle(H.x, H.y, 10)
+      }
+      else{
+        // Rlines.lineStyle(1, 0x900000, 0.8);
+        Rlines.drawCircle(A.x, A.y, 10)
+      }
+    }
+  }
+
+}
+
+/* https://qiita.com/ykob/items/ab7f30c43a0ed52d16f2 */
+function judgeIentersected(ax: number, ay: number, bx: number, by: number, cx: number, cy: number, dx: number, dy: number): boolean {
+  const ta = (cx - dx) * (ay - cy) + (cy - dy) * (cx - ax);
+  const tb = (cx - dx) * (by - cy) + (cy - dy) * (cx - bx);
+  const tc = (ax - bx) * (cy - ay) + (ay - by) * (ax - cx);
+  const td = (ax - bx) * (dy - ay) + (ay - by) * (ax - dx);
+
+  // return tc * td < 0 && ta * tb < 0;
+  return tc * td <= 5 && ta * tb <= 5; // 端点を含む場合
+};
+
+/* https://kazuki-nagasawa.hatenablog.com/entry/memo_20221018_javascript_perpendicular */
+function getPerpendicular(x1: number, y1: number, x2: number, y2: number, px: number, py: number): { x: number, y: number } {
+  // 線分Wの単位ベクトルUを求める
+  let W = { x: x2 - x1, y: y2 - y1 };
+  let dist_w = Math.sqrt(Math.pow(W.x, 2) + Math.pow(W.y, 2));
+  let U = { x: W.x / dist_w, y: W.y / dist_w };
+
+  // A ... point から線分の片方の端までのベクトル
+  let A = { x: px - x1, y: py - y1 };
+
+  // t ... A と U との内積
+  let t = A.x * U.x + A.y * U.y;
+
+  // 線分の片方の端から t 倍だけ進んだ先の点が求める座標
+  let H = { x: x1 + t * U.x, y: y1 + t * U.y };
+
+  return H;
 }
 
 // let p = line.geometry.points
@@ -277,6 +445,8 @@ function onDragMove(event: PIXI.FederatedPointerEvent) {
 }
 
 function onDragStart(event: PIXI.FederatedPointerEvent) {
+  pointv();
+
   event.stopPropagation()
   // store a reference to the data
   // the reason for this is because of multitouch
