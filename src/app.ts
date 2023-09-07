@@ -2,6 +2,8 @@ import * as PIXI from 'pixi.js';
 import '@pixi/graphics-extras';
 import { Viewport } from "pixi-viewport";
 
+import * as Search from "./arraysearch.js"
+
 const pixiApp = new PIXI.Application<HTMLCanvasElement>({
   width: 1920,
   height: 1080,
@@ -60,104 +62,15 @@ box.on('pointerdown', onDragStart, box);
 box.on('pointerup', onDragEnd);
 box.on('pointerupoutside', onDragEnd);
 
-let linepath: { x: number; y: number; index: number }[] = []
-let linepath_sortByX: { x: number; y: number; index: number }[] = []
-let linepath_sortByY: { x: number; y: number; index: number }[] = []
-
-function pointv() {
-  const points = line.geometry.points
-  const dots = points.length / 2;
-  const dot = new PIXI.Graphics();
-  dot.lineStyle(0.1, 0x000080)
-
-  for (let index = 0; index < points.length; index += 2) {
-    const x = points[index];
-    const y = points[index + 1];
-    dot.drawCircle(x, y, 2);
-
-  }
-  viewport.addChild(dot)
-
-  const path: { x: number; y: number; }[] = []
-  linepath = []
-  let i = 0;
-  for (let index = 0; index < points.length; index += 4) {
-    const x_odd = points[index + 0]
-    const y_odd = points[index + 1]
-    const x_even = points[index + 2]
-    const y_even = points[index + 3]
-
-    const x_center = (x_odd + x_even) / 2
-    const y_center = (y_odd + y_even) / 2
-    path.push({ x: x_center, y: y_center })
-    linepath.push({ x: x_center, y: y_center, index: i })
-    i++
-  }
-  // linepath_sortByX = [...linepath].sort()
-
-  const gr = new PIXI.Graphics()
-  gr.lineStyle(0.1, 0x808000)
-  gr.moveTo(path[0].x, path[0].y)
-  path.forEach(element => {
-    gr.lineTo(element.x, element.y)
-  });
-  viewport.addChild(gr)
-
-}
+let linepath: USER.PathPoint[] = []
+let divpath: USER.PathPoint[] = []
 
 
 
 
-const line = new PIXI.Graphics();
 
-// line.interactive = true;
-// line.cursor = 'pointer'
-line.moveTo(100, 0)
-line.lineStyle(50, 0x90D090);
-// line.lineTo(100, 360);
-// line.lineTo(200, 200)
-line.quadraticCurveTo(120, 380, 300, 500)
-line.quadraticCurveTo(520, 580, 300, 300)
-// line.arcTo(300, 500, 500, 600, Math.PI * 3)
-line.lineStyle();
-viewport.addChild(line)
-line.on('pointerdown', onDragStart, line);
-line.on('pointerup', onDragEnd);
-line.on('pointerupoutside', onDragEnd);
-line.on('pointermove', onDragMove)
-console.log(line.geometry.points)
-// line.containsPoint()
 
-// const tex = pixiApp.renderer.generateTexture(line)
-// const grSprite = new PIXI.Sprite(tex)
-// grSprite.eventMode = 'static';
-// grSprite.cursor = 'pointer'
-// grSprite.x = 500
-// grSprite.y = 500
-// grSprite.on('pointerdown', onDragStart, grSprite);
-// grSprite.on('pointerup', onDragEnd);
-// grSprite.on('pointerupoutside', onDragEnd);
-// viewport.addChild(grSprite)
 
-line.hitArea = {
-  contains: (x: number, y: number) => {
-    const points = line.geometry.points
-    const od: { x: number; y: number; z: number }[] = []
-    const even: { x: number; y: number; z: number }[] = []
-
-    for (let index = 0; index * 2 < points.length; index++) {
-      const x = points[index * 2]
-      const y = points[index * 2 + 1]
-      const z = points[index * 2 + 2]
-      if (index % 2 === 0) {
-        od.push({ x, y, z })
-      } else {
-        even.push({ x, y, z })
-      }
-    }
-    return new PIXI.Polygon([...od, ...even.reverse()]).contains(x, y)
-  },
-}
 
 viewport.on('pointermove', onPointerMove)
 
@@ -171,68 +84,105 @@ Rlines.lineStyle(1, 0x000000, 0.8);
 viewport.addChild(Rlines);
 
 function onPointerMove(event) {
-  const newPoint = event.getLocalPosition(this);
+  const newPoint: USER.Point = event.getLocalPosition(this);
   pointerCircle.x = newPoint.x
   pointerCircle.y = newPoint.y
 
-  let dlist: { d: number, index: number }[] = []
+  // let dlist: { d: number, index: number }[] = []
   Rlines.clear();
   Rlines.lineStyle(1, 0x000000, 0.8);
-  /* path割 */
-  let divpath: { x: number; y: number; index: number }[] = []
-  let newindex: number = 0
-  for (let i = 0; i < linepath.length - 1; i++) {
-    const e = linepath[i];
-    e.index = newindex
-    newindex++;
-    divpath.push(e)
-    const xdiff = linepath[i + 1].x - linepath[i].x
-    const ydiff = linepath[i + 1].y - linepath[i].y
-    const gtdiff = Math.max(Math.abs(xdiff), Math.abs(ydiff))
-    const threshold = 20
-    const div = Math.floor(gtdiff / threshold)
-    for (let divCount = 0; divCount < div - 1; divCount++) {
-      let d: { x: number; y: number; index: number } = { x: 0, y: 0, index: 0 };
-      d.x = linepath[i].x + ((xdiff / div) * (divCount + 1));
-      d.y = linepath[i].y + ((ydiff / div) * (divCount + 1));
-      d.index = newindex;
-      divpath.push(d)
-      newindex++;
-    }
-  }
-  const d = linepath[linepath.length - 1]
-  d.index = newindex
-  divpath.push(d)
 
   divpath.forEach(element => {
-    const dist = Math.sqrt(((element.x - newPoint.x) ** 2 + (element.y - newPoint.y) ** 2))
-    dlist.push({ d: dist, index: element.index })
+    element.distance_fromCursor = calcDistance(element, newPoint)
   });
 
-  dlist.sort((a, b) => (a.d - b.d))
+  let sorted_dlist = [...divpath].sort((a, b) => (a.distance_fromCursor - b.distance_fromCursor))
 
-  for (let i = 0; i < 2; i++) {
-    const element = divpath[dlist[i].index];
-    if (dlist[i].d > 30.0) {
-      break;
-    }
-    // Rlines.moveTo(newPoint.x, newPoint.y)
-    // Rlines.lineTo(element.x, element.y)
-    if (i == 1) {
-      const A = divpath[dlist[0].index]
-      const B = divpath[dlist[1].index]
-      const H = getPerpendicular(A.x, A.y, B.x, B.y, newPoint.x, newPoint.y)
-
-      if (judgeIentersected(A.x, A.y, B.x, B.y, newPoint.x, newPoint.y, H.x, H.y)) {
-        Rlines.drawCircle(H.x, H.y, 10)
-      }
-      else{
-        // Rlines.lineStyle(1, 0x900000, 0.8);
-        Rlines.drawCircle(A.x, A.y, 10)
-      }
-    }
+  const shortestPoint = sorted_dlist[0];
+  if (shortestPoint.distance_fromCursor > 30.0) {
+    return;
+  }
+  let A = divpath[shortestPoint.index]
+  let d1: USER.PathPoint | undefined = divpath.at(shortestPoint.index + 1)
+  let d2: USER.PathPoint | undefined = divpath.at(shortestPoint.index - 1)
+  let B = A
+  if ((d1 == undefined) || (d1.distance_fromCursor >= d2.distance_fromCursor)) {
+    B = divpath[shortestPoint.index - 1]
+  }
+  else if ((d2 == undefined) || (d1.distance_fromCursor < d2.distance_fromCursor)) {
+    B = divpath[shortestPoint.index + 1]
+  }
+  else {
+    Rlines.drawCircle(A.x, A.y, 10)
+    return;
   }
 
+  const H = getPerpendicular(A.x, A.y, B.x, B.y, newPoint.x, newPoint.y)
+  let R = H
+
+  if (judgeIentersected(A.x, A.y, B.x, B.y, newPoint.x, newPoint.y, H.x, H.y)) {
+    /* 線分の範囲内 線分と垂直線の交点 */
+    R = H
+  }
+  else {
+    /* 線分の範囲外 */
+    R = A
+  }
+
+  Rlines.drawCircle(R.x, R.y, 10)
+  Rlines.moveTo(A.x, A.y)
+  Rlines.lineTo(newPoint.x, newPoint.y)
+  Rlines.lineTo(B.x, B.y)
+
+
+  let m = A
+  if (A.index > B.index) {
+    m = B
+  }
+
+  length = 0
+  if (m.index > 0) {
+    let w = divpath.slice(0, m.index + 1)
+    length = calcPathLength(w);
+  }
+
+  /* length */
+  length += calcDistance(m, R)
+  console.log("%:" + length / divpath.at(-1).distance_fromStart)
+
+  /* rad */
+  // let rad = 0
+  // if(A.index > B.index)
+  // {
+  //   rad = Math.atan2(B.y - A.y, B.x - A.x)
+  // }
+  // else{
+  //   rad = Math.atan2(A.y - B.y, A.x - B.x)
+  // }
+  // console.log((rad + Math.PI) * 180/Math.PI)
+
+
+
+  const tlength = 1000.0
+  let currentLength = 0
+  let prevLength = 0
+  let prevElement = divpath[0]
+  let neerIndex = 0;
+  let v_len
+  let v: USER.Point
+
+  const lenSortedPath = [...divpath].sort((a, b) => a.distance_fromStart - b.distance_fromStart)
+  neerIndex = Search.lowerBound(lenSortedPath, tlength, ((l, r) => l.distance_fromStart < r))
+  const prev = divpath[neerIndex - 1]
+  const next = divpath[neerIndex]
+  v_len = prev.distance_toNext
+  v = { x: (next.x - prev.x), y: (next.y - prev.y) }
+
+  let remain = tlength - prev.distance_fromStart
+  v.x *= (remain / v_len)
+  v.y *= (remain / v_len)
+
+  Rlines.drawCircle(prev.x + v.x, prev.y + v.y, 10)
 }
 
 /* https://qiita.com/ykob/items/ab7f30c43a0ed52d16f2 */
@@ -243,7 +193,7 @@ function judgeIentersected(ax: number, ay: number, bx: number, by: number, cx: n
   const td = (ax - bx) * (dy - ay) + (ay - by) * (ax - dx);
 
   // return tc * td < 0 && ta * tb < 0;
-  return tc * td <= 5 && ta * tb <= 5; // 端点を含む場合
+  return tc * td <= 0.5 && ta * tb <= 0.5; // 端点を含む場合
 };
 
 /* https://kazuki-nagasawa.hatenablog.com/entry/memo_20221018_javascript_perpendicular */
@@ -265,24 +215,20 @@ function getPerpendicular(x1: number, y1: number, x2: number, y2: number, px: nu
   return H;
 }
 
-// let p = line.geometry.points
 
-// for (let index = 0; index < p.length; index += 2) {
-//   const x = p[index];
-//   const y = p[index + 1];
+function calcPathLength(path: USER.PathPoint[]) {
+  let length = 0;
+  let current = path[0]
+  path.forEach(element => {
+    length += calcDistance(element, current)
+    current = element
+  });
+  return length
+}
 
-// }
-
-// function checker()
-// {
-//   const position = app.renderer.plugins.interaction.mouse.global;
-//   if(line.containsPoint(position))
-//   {
-//     let asdf = 0
-//   }
-// }
-
-// app.ticker.add(checker)
+function calcDistance(a: USER.Point, b: USER.Point) {
+  return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
+}
 
 // create a texture from an image path
 const texture = PIXI.Texture.from('https://pixijs.com/assets/bunny.png');
@@ -302,6 +248,147 @@ for (let i = 0; i < 3; i++) {
   );
 
 }
+const line = new PIXI.Graphics();
+
+function pointv() {
+  const points = line.geometry.points
+  const dots = points.length / 2;
+  const dot = new PIXI.Graphics();
+  dot.lineStyle(0.1, 0x000080)
+
+  for (let index = 0; index < points.length; index += 2) {
+    const x = points[index];
+    const y = points[index + 1];
+    dot.drawCircle(x, y, 2);
+
+  }
+  viewport.addChild(dot)
+
+  linepath = []
+  let i = 0;
+  for (let index = 0; index < points.length; index += 4) {
+    const x_odd = points[index + 0]
+    const y_odd = points[index + 1]
+    const x_even = points[index + 2]
+    const y_even = points[index + 3]
+
+    const x_center = (x_odd + x_even) / 2
+    const y_center = (y_odd + y_even) / 2
+    linepath.push({ x: x_center, y: y_center, index: i })
+    i++
+  }
+
+  /* path point 分割 */
+  divpath = []
+  let newindex: number = 0
+  for (let i = 0; i < linepath.length - 1; i++) {
+    const e = linepath[i];
+    e.index = newindex
+    newindex++;
+    divpath.push(e)
+    const xdiff = linepath[i + 1].x - linepath[i].x
+    const ydiff = linepath[i + 1].y - linepath[i].y
+    const gtdiff = Math.max(Math.abs(xdiff), Math.abs(ydiff))
+    const threshold = 10
+    const div = Math.floor(gtdiff / threshold)
+    for (let divCount = 0; divCount < div - 1; divCount++) {
+      const x = linepath[i].x + ((xdiff / div) * (divCount + 1));
+      const y = linepath[i].y + ((ydiff / div) * (divCount + 1));
+      const index = newindex;
+      divpath.push({ x: x, y: y, index: index })
+      newindex++;
+    }
+  }
+  const d = linepath[linepath.length - 1]
+  d.index = newindex
+  divpath.push(d)
+
+  let totalLength = 0; /* スタートからの総距離 */
+  let PtoPLength = 0;  /* point-point区間距離 */
+  let current = divpath[0]
+  divpath.forEach(element => {
+    PtoPLength = calcDistance(element, current)
+    totalLength += PtoPLength
+    current.distance_toNext = PtoPLength
+    element.distance_fromStart = totalLength
+    current = element
+  });
+
+  let length = divpath[-1].distance_fromStart;
+  console.log("total:" + length)
+
+  const gr = new PIXI.Graphics()
+  gr.lineStyle(0.1, 0x808000)
+  gr.moveTo(linepath[0].x, linepath[0].y)
+  linepath.forEach(element => {
+    gr.lineTo(element.x, element.y)
+  });
+  viewport.addChild(gr)
+}
+
+
+
+function addline(){
+
+  // line.interactive = true;
+  // line.cursor = 'pointer'
+  line.moveTo(0, 0)
+  line.lineStyle(50, 0x90D090);
+  
+  // line.drawCircle(100,100,100)
+  
+  // line.lineTo(90, 0);
+  // line.lineTo(90, 90);
+  
+  line.quadraticCurveTo(120, 380, 300, 500)
+  line.quadraticCurveTo(520, 580, 500, 300)
+  line.lineTo(500, 200)
+  line.lineTo(500, 0)
+  line.lineTo(700, 0)
+  
+  line.lineStyle();
+  viewport.addChild(line)
+  line.on('pointerdown', onDragStart, line);
+  line.on('pointerup', onDragEnd);
+  line.on('pointerupoutside', onDragEnd);
+  line.on('pointermove', onDragMove)
+  console.log(line.geometry.points)
+  // line.containsPoint()
+  
+  // const tex = pixiApp.renderer.generateTexture(line)
+  // const grSprite = new PIXI.Sprite(tex)
+  // grSprite.eventMode = 'static';
+  // grSprite.cursor = 'pointer'
+  // grSprite.x = 500
+  // grSprite.y = 500
+  // grSprite.on('pointerdown', onDragStart, grSprite);
+  // grSprite.on('pointerup', onDragEnd);
+  // grSprite.on('pointerupoutside', onDragEnd);
+  // viewport.addChild(grSprite)
+  
+  line.hitArea = {
+    contains: (x: number, y: number) => {
+      const points = line.geometry.points
+      const od: { x: number; y: number; z: number }[] = []
+      const even: { x: number; y: number; z: number }[] = []
+  
+      for (let index = 0; index * 2 < points.length; index++) {
+        const x = points[index * 2]
+        const y = points[index * 2 + 1]
+        const z = points[index * 2 + 2]
+        if (index % 2 === 0) {
+          od.push({ x, y, z })
+        } else {
+          even.push({ x, y, z })
+        }
+      }
+      return new PIXI.Polygon([...od, ...even.reverse()]).contains(x, y)
+    },
+  }
+  
+  pointv()
+}
+
 
 class SpriteHandle {
   N: PIXI.Sprite | undefined = undefined;
@@ -445,14 +532,13 @@ function onDragMove(event: PIXI.FederatedPointerEvent) {
 }
 
 function onDragStart(event: PIXI.FederatedPointerEvent) {
-  pointv();
+  addline();
 
   event.stopPropagation()
   // store a reference to the data
   // the reason for this is because of multitouch
   // we want to track the movement of this particular touch
   // this.data = event.data;
-  walls[0][0].N.alpha = 0;
   this.alpha = 0.5;
   dragPoint = event.getLocalPosition(this.parent);
   dragPoint.x -= this.x;
