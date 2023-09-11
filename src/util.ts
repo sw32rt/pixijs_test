@@ -27,3 +27,8 @@ export function getPerpendicular(x1: number, y1: number, x2: number, y2: number,
 
     return H;
 }
+
+// export function range(begin: number, end: number) {
+//     return ([...Array(to - from)].map((_, i) => (from + i)))
+// }
+

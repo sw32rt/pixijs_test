@@ -1,13 +1,14 @@
 import * as PIXI from 'pixi.js';
 import * as Util from './util.js'
 import * as Search from './arraysearch.js'
+const RESOLUTION = 1.0
 
 export class Path {
     private line = new PIXI.Graphics();
     private container: PIXI.Container
     private linepath: USER.PathPoint[] = []
     private divpath: USER.PathPoint[] = []
-    private totalLength: number
+    public totalLength: number
     private gr: PIXI.Graphics
 
     constructor(container: PIXI.Container) {
@@ -24,18 +25,53 @@ export class Path {
         // line.interactive = true;
         // line.cursor = 'pointer'
         this.line.moveTo(0, 0)
-        this.line.lineStyle(50, 0x90D090);
+        this.line.lineStyle(RESOLUTION * 50, 0x90D090);
 
         // line.drawCircle(100,100,100)
 
         // line.lineTo(90, 0);
         // line.lineTo(90, 90);
 
-        this.line.quadraticCurveTo(120, 380, 300, 500)
-        this.line.quadraticCurveTo(520, 580, 500, 300)
-        this.line.lineTo(500, 200)
-        this.line.lineTo(500, 0)
-        this.line.lineTo(700, 0)
+        this.line.quadraticCurveTo(RESOLUTION * 120, RESOLUTION * 380, RESOLUTION * 300, RESOLUTION * 500)
+        this.line.quadraticCurveTo(RESOLUTION * 520, RESOLUTION * 580, RESOLUTION * 500, RESOLUTION * 300)
+        this.line.lineTo(RESOLUTION * 500, RESOLUTION * 200)
+        this.line.lineTo(RESOLUTION * 500, RESOLUTION * 0)
+        this.line.lineTo(RESOLUTION * 700, RESOLUTION * 0)
+        const scale: PIXI.IPointData = { x: 1 / RESOLUTION, y: 1 / RESOLUTION }
+        this.line.scale = scale
+
+        /* クロソイド曲線 */
+        // let t = 0;
+        // let x = 0;
+        // let y = 0;
+        // const dt = 0.01
+        // const tmax = t + (2 * 3.14)
+        // this.line.lineStyle(RESOLUTION * 1, 0x90D090);
+        // this.line.moveTo(0, 0)
+
+        // let Θ = 0
+        // let ΔΘ = 0
+        // let prevΘ = 0
+
+        // let r = 100;
+        // let r_end = 100
+        // do {
+        //     t += dt;
+        //     if (ΔΘ < r * dt / r_end) {
+        //         Θ = t * t
+        //     }
+        //     else {
+        //         Θ += ΔΘ
+        //     }
+        //     // Θ = t
+        //     x += Math.cos(Θ) * dt * r;
+        //     y += Math.sin(Θ) * dt * r;
+        //     ΔΘ = Θ - prevΘ;
+        //     this.line.lineTo(x, y);
+        //     console.log("Θ", Θ, "prevΘ", prevΘ, "ΔΘ", ΔΘ / dt)
+        //     prevΘ = Θ
+        // } while (t < tmax);
+
 
         this.line.lineStyle();
         this.container.addChild(this.line)
@@ -100,7 +136,7 @@ export class Path {
 
             const x_center = (x_odd + x_even) / 2
             const y_center = (y_odd + y_even) / 2
-            this.linepath.push({ x: x_center, y: y_center, index: i })
+            this.linepath.push({ x: x_center / RESOLUTION, y: y_center / RESOLUTION, index: i })
             i++
         }
 
@@ -265,14 +301,15 @@ export class Path {
         if (distanceFromStart > this.totalLength) {
             distanceFromStart = this.totalLength
         }
-        if (distanceFromStart < 0) {
-            distanceFromStart = 0;
+        if (distanceFromStart <= 0) {
+            return this.divpath[0]
         }
 
         const lenSortedPath = [...this.divpath].sort((a, b) => a.distanceFromStart - b.distanceFromStart)
         const neerIndex = Search.lowerBound(lenSortedPath, distanceFromStart, ((l, r) => l.distanceFromStart < r))
         const prevWayPoint = this.divpath[neerIndex - 1] /* distanceFromStartよりちょっと短い */
         const nextWayPoint = this.divpath[neerIndex]     /* distanceFromStartよりちょっと長い */
+
         const prevToNextLength = prevWayPoint.distanceToNext
         const prevToNextVector: USER.Point = { x: (nextWayPoint.x - prevWayPoint.x), y: (nextWayPoint.y - prevWayPoint.y) }
 

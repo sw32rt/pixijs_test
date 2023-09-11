@@ -5,6 +5,8 @@ import { Viewport } from "pixi-viewport";
 import { MazeView } from './mazeview.js';
 import { Path } from './path.js';
 
+import * as Chart from 'chart.js'
+
 namespace app.global {
     export let pixiApp: PIXI.Application
     export let viewport: Viewport
@@ -77,12 +79,15 @@ function onPointerMove(event) {
 
     const info = app.global.path.getClosestPointInfo(cursor)
     if (info == undefined) { return }
-    console.log("dist:%.2f", info.distanceFromStart.toFixed(3), ", %:", (info.distPercent * 100).toFixed(4), "angle:", (info.direction + Math.PI) * (180 / Math.PI))
+    console.log("x:", info.point.x, "y:", info.point.y, "dist:%.2f", info.distanceFromStart.toFixed(3), ", %:", (info.distPercent * 100).toFixed(4), "angle:", (info.direction + Math.PI) * (180 / Math.PI))
 
-    app.global.debugObject.drawCircle(info.point.x, info.point.y, 10)
+    /* draw △ */
+    app.global.debugObject.drawRegularPolygon(info.point.x, info.point.y, 10, 3, info.direction - Math.PI / 2)
 
     const point = app.global.path.getPointByDistance(1300.0)
     app.global.debugObject.drawCircle(point.x, point.y, 10)
+
+    /* TODO: line tooltip */
 }
 
 function app_main() {
@@ -105,6 +110,47 @@ function app_main() {
     app.global.debugObject.lineStyle(1, 0x000000, 0.8);
     app.global.viewport.addChild(app.global.debugObject);
 
+    const pathData: number[] = []
+    let dist = 0;
+    while (dist < app.global.path.totalLength) {
+        // while (dist < 3) {
+        let point = app.global.path.getPointByDistance(dist)
+        let info = app.global.path.getClosestPointInfo(point)
+
+        pathData.push(info.direction * 180 / Math.PI)
+        dist += 1
+    }
+
+    const labels = [];
+    for (let i = 0; i < app.global.path.totalLength; ++i) {
+        labels.push(i.toString());
+    }
+
+    Chart.Chart.register(...Chart.registerables);
+    const ctx = document.getElementById('myChart') as HTMLCanvasElement;
+
+    const data = {
+        labels: labels,
+        datasets: [{
+            label: 'My First Dataset',
+            data: [...pathData],
+            fill: false,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    };
+
+    new Chart.Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
 }
 
 app_main()
