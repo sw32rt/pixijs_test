@@ -8,9 +8,15 @@ export class Path {
     private linepath: USER.PathPoint[] = []
     private divpath: USER.PathPoint[] = []
     private totalLength: number
+    private gr: PIXI.Graphics
 
     constructor(container: PIXI.Container) {
         this.container = container
+
+        this.gr = new PIXI.Graphics();
+        this.gr.lineStyle(1, 0);
+        this.gr.drawCircle(0, 0, 5)
+        this.container.addChild(this.gr)
     }
 
     public drawPath() {
@@ -180,24 +186,16 @@ export class Path {
         const perpendiculerPoint = Util.getPerpendicular(indexForward.x, indexForward.y, indexBackward.x, indexBackward.y, cursor.x, cursor.y)
         let pointOnLineSegment = perpendiculerPoint
 
-        // console.log("cursordiff:", cursor.y - perpendiculerPoint.y)
-        // const prevToNextLength = prevWayPoint.distanceToNext
-        // const prevToNextVector: USER.Point = { x: (nextWayPoint.x - prevWayPoint.x), y: (nextWayPoint.y - prevWayPoint.y) }
+        /* 線分に対しての垂直線を伸ばすしてT->＋の形にする。Tだと計算誤差で線分同士が交わっていない判断になることがあるので。 */
+        const scaledVector: USER.Point = { x: (perpendiculerPoint.x - cursor.x), y: (perpendiculerPoint.y - cursor.y) }
+        scaledVector.x *= 2
+        scaledVector.y *= 2
+        const mirrorPoint: USER.Point = {
+            x: (perpendiculerPoint.x + scaledVector.x),
+            y: (perpendiculerPoint.y + scaledVector.y)
+        }
 
-        // /* distanceFromStart にフィットするようにベクトルを縮める */
-        // let remain = distanceFromStart - prevWayPoint.distanceFromStart
-        // const scaledVector: USER.Point = {
-        //     x: prevToNextVector.x * (remain / prevToNextLength),
-        //     y: prevToNextVector.y * (remain / prevToNextLength)
-        // }
-
-        // const destinationPoint: USER.Point = {
-        //     x: (prevWayPoint.x + scaledVector.x),
-        //     y: (prevWayPoint.y + scaledVector.y)
-        // }
-
-
-        if (Util.judgeIentersected(indexForward.x, indexForward.y, indexBackward.x, indexBackward.y, cursor.x, cursor.y, perpendiculerPoint.x, perpendiculerPoint.y)) {
+        if (Util.judgeIentersected(indexForward.x, indexForward.y, indexBackward.x, indexBackward.y, cursor.x, cursor.y, mirrorPoint.x, mirrorPoint.y)) {
             /* 線分の範囲内 線分と垂直線の交点 */
             pointOnLineSegment = perpendiculerPoint
         }

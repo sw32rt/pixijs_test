@@ -6,7 +6,7 @@ export function judgeIentersected(ax: number, ay: number, bx: number, by: number
     const td = (ax - bx) * (dy - ay) + (ay - by) * (ax - dx);
 
     // return tc * td < 0 && ta * tb < 0;
-    return tc * td <= 0.5 && ta * tb <= 0.5; // 端点を含む場合
+    return tc * td <= 0 && ta * tb <= 0; // 端点を含む場合
 };
 
 /* https://kazuki-nagasawa.hatenablog.com/entry/memo_20221018_javascript_perpendicular */
