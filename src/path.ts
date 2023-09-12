@@ -16,7 +16,6 @@ export class Path {
 
         this.gr = new PIXI.Graphics();
         this.gr.lineStyle(1, 0);
-        this.gr.drawCircle(0, 0, 5)
         this.container.addChild(this.gr)
     }
 
@@ -25,54 +24,147 @@ export class Path {
         // line.interactive = true;
         // line.cursor = 'pointer'
         this.line.moveTo(0, 0)
-        this.line.lineStyle(RESOLUTION * 50, 0x90D090);
+        this.line.lineStyle(RESOLUTION * 1, 0x90D090, 0.5);
 
         // line.drawCircle(100,100,100)
 
         // line.lineTo(90, 0);
         // line.lineTo(90, 90);
 
-        this.line.quadraticCurveTo(RESOLUTION * 120, RESOLUTION * 380, RESOLUTION * 300, RESOLUTION * 500)
-        this.line.quadraticCurveTo(RESOLUTION * 520, RESOLUTION * 580, RESOLUTION * 500, RESOLUTION * 300)
-        this.line.lineTo(RESOLUTION * 500, RESOLUTION * 200)
-        this.line.lineTo(RESOLUTION * 500, RESOLUTION * 0)
-        this.line.lineTo(RESOLUTION * 700, RESOLUTION * 0)
-        const scale: PIXI.IPointData = { x: 1 / RESOLUTION, y: 1 / RESOLUTION }
-        this.line.scale = scale
+        // this.line.quadraticCurveTo(RESOLUTION * 120, RESOLUTION * 380, RESOLUTION * 300, RESOLUTION * 500)
+        // this.line.quadraticCurveTo(RESOLUTION * 520, RESOLUTION * 580, RESOLUTION * 500, RESOLUTION * 300)
+        // this.line.lineTo(RESOLUTION * 500, RESOLUTION * 200)
+        // this.line.lineTo(RESOLUTION * 500, RESOLUTION * 0)
+        // this.line.lineTo(RESOLUTION * 700, RESOLUTION * 0)
 
         /* クロソイド曲線 */
-        // let t = 0;
-        // let x = 0;
-        // let y = 0;
-        // const dt = 0.01
-        // const tmax = t + (2 * 3.14)
-        // this.line.lineStyle(RESOLUTION * 1, 0x90D090);
-        // this.line.moveTo(0, 0)
+        let t = 0;
+        let x = 0;
+        let y = 0;
+        const dt = 0.01
+        const tmax = t + (2 * 3.14)
+        this.line.moveTo(0, 0)
 
-        // let Θ = 0
-        // let ΔΘ = 0
-        // let prevΘ = 0
+        let curveScale = 90;
+        let endR = 60
+        let startΘ = 0
+        let Θ = startΘ
+        let ΔΘ = 0
+        let endΔΘ = (curveScale * dt) / endR
+        let ΔΔΘ = (curveScale * dt * dt) / endR
+        let prevΘ = 0
+        let startArcΘ = 0
 
-        // let r = 100;
-        // let r_end = 100
-        // do {
-        //     t += dt;
-        //     if (ΔΘ < r * dt / r_end) {
-        //         Θ = t * t
+        while (1) {
+            x += Math.cos(Θ) * dt * curveScale;
+            y += Math.sin(Θ) * dt * curveScale;
+            Θ += ΔΘ
+            ΔΘ += ΔΔΘ
+
+            if (ΔΘ >= endΔΘ) {
+                startArcΘ = Θ
+                this.line.drawCircle(x, y, 2)
+                break
+            }
+            this.line.lineTo(x, y)
+            console.log("Θ", Θ, "prevΘ", prevΘ, "ΔΘ", ΔΘ / dt, "r", (dt * curveScale) / ΔΘ)
+        }
+        let first = 1;
+        while (1) {
+            x += Math.cos(Θ) * dt * curveScale;
+            y += Math.sin(Θ) * dt * curveScale;
+            Θ += ΔΘ
+            if (Θ >= ((Math.PI / 2))) {
+
+                if (first) {
+                    first = 0;
+                    this.line.drawCircle(x, y, 2)
+
+                }
+            }
+            if (Θ >= startArcΘ + (((Math.PI / 2) - startArcΘ) * 2)) {
+                this.line.drawCircle(x, y, 2)
+                break
+            }
+            this.line.lineTo(x, y)
+            console.log("Θ", Θ, "prevΘ", prevΘ, "ΔΘ", ΔΘ / dt, "r", (dt * curveScale) / ΔΘ)
+        }
+
+
+        while (1) {
+            x += Math.cos(Θ) * dt * curveScale;
+            y += Math.sin(Θ) * dt * curveScale;
+            Θ += ΔΘ
+            ΔΘ -= ΔΔΘ
+
+            this.line.lineTo(x, y)
+            console.log("Θ", Θ, "prevΘ", prevΘ, "ΔΘ", ΔΘ / dt, "r", (dt * curveScale) / ΔΘ)
+            if (ΔΘ <= 0) {
+                break
+            }
+        }
+
+
+        // while (t < tmax) {
+        //     if (ΔΘ < curveScale * dt / r_end) {
+        //         t += dt;
+        //         Θ = (t * t) / J
         //     }
         //     else {
         //         Θ += ΔΘ
+        //         // this.line.lineStyle(RESOLUTION * 4, 0x90E0E0, 0.5);
+        //         count++
         //     }
         //     // Θ = t
-        //     x += Math.cos(Θ) * dt * r;
-        //     y += Math.sin(Θ) * dt * r;
+        //     x += Math.cos(Θ) * dt * curveScale;
+        //     y += Math.sin(Θ) * dt * curveScale;
+        //     ΔΘ = Θ - prevΘ;
+        //     console.log("Θ", Θ, "prevΘ", prevΘ, "ΔΘ", ΔΘ / dt, "r", (dt * curveScale) / ΔΘ)
+        //     prevΘ = Θ
+        //     /* r, Θをpathに */
+
+        //     if ((dt > 0) && (Θ >= startΘ + Math.PI / 2)) {
+        //         endΘ = Θ
+        //         break
+        //     }
+        //     else if ((dt < 0) && (Θ <= startΘ + Math.PI / 2)) {
+        //         endΘ = Θ
+        //         break
+        //     }
+        //     this.line.lineTo(x, y);
+        // }
+
+        // while (t < tmax * 2) {
+        //     if (count <= 0) {
+        //         t += dt;
+        //         // Θ = (Math.PI / 2) + endΘ - ((t * t) / J)
+        //         Θ = ((t * t) / J)
+        //         // this.line.lineStyle(RESOLUTION * 4, 0x90D090, 0.5);
+        //     }
+        //     else {
+        //         Θ += ΔΘ
+        //         count--
+        //     }
+        //     // Θ = t
+        //     x += Math.cos(Θ) * dt * curveScale;
+        //     y += Math.sin(Θ) * dt * curveScale;
         //     ΔΘ = Θ - prevΘ;
         //     this.line.lineTo(x, y);
-        //     console.log("Θ", Θ, "prevΘ", prevΘ, "ΔΘ", ΔΘ / dt)
+        //     console.log("Θ", Θ, "prevΘ", prevΘ, "ΔΘ", ΔΘ / dt, "r", (dt * curveScale) / ΔΘ)
+        //     /* r, Θをpathに */
+
+        //     // if ((dt > 0) && (Θ >= startΘ + Math.PI / 2)) {
+        //     //     break
+        //     // }
+        //     // else if ((dt < 0) && (Θ <= startΘ + Math.PI / 2)) {
+        //     //     break
+        //     // }
         //     prevΘ = Θ
-        // } while (t < tmax);
+        // }
 
 
+        const scale: PIXI.IPointData = { x: 1 / RESOLUTION, y: 1 / RESOLUTION }
+        this.line.scale = scale
         this.line.lineStyle();
         this.container.addChild(this.line)
         // this.line.on('pointerdown', onDragStart, this.line);
