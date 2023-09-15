@@ -17,11 +17,9 @@ namespace app.global {
 }
 
 function createPixiApp(): PIXI.Application {
-  let a = document.getElementById("pixiCanvas")
-  console.log(a)
   const pixiApp = new PIXI.Application<HTMLCanvasElement>({
     view: <HTMLCanvasElement>document.getElementById("pixiCanvas"),
-    // antialias: true,
+    antialias: true,
     backgroundColor: 0xE0E0E0
   })
   // const pixiApp = new PIXI.Application<HTMLCanvasElement>({
@@ -31,8 +29,8 @@ function createPixiApp(): PIXI.Application {
   //   backgroundColor: 0xE0E0E0
   // });
   pixiApp.view.style.width = '100%';
-  pixiApp.view.style.height = 'auto';
-  document.body.appendChild(pixiApp.view);
+  pixiApp.view.style.height = '100%';
+  // document.body.appendChild(pixiApp.view);
 
   pixiApp.renderer
   pixiApp.ticker.start();
