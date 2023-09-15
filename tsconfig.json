@@ -1,22 +1,40 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ES2020",
-    "lib": ["es2022", "dom"],
-    "jsx": "react",
-    "sourceMap": true,
-    "outDir": "./out",
-    "rootDir": "./src",
-    "strict": false,
+    "baseUrl": ".",
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
     "moduleResolution": "Node",
-    "baseUrl": "src",
+    "strict": false,
+    "jsx": "preserve",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
     "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "noEmit": true,
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    },
+    "allowImportingTsExtensions": true,
   },
-  "include": ["./src/**/*", "./node_modules/", "./node_modules/pixi.js/dist"],
-  "exclude": ["out", "node_modules"],
-  "compileOnSave": true
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ],
+  "exclude": [
+    "node_modules"
+  ],
 }

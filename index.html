@@ -1,89 +1,16 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-  <title>test</title>
-
-  <script async src="https://ga.jspm.io/npm:es-module-shims@1.8.0/dist/es-module-shims.js"
-    crossorigin="anonymous"></script>
-  <script type="importmap">
-  {
-    "imports": {
-      "@pixi/graphics-extras": "https://ga.jspm.io/npm:@pixi/graphics-extras@7.2.4/lib/index.mjs",
-      "chart.js": "https://ga.jspm.io/npm:chart.js@4.4.0/dist/chart.js",
-      "pixi-viewport": "https://ga.jspm.io/npm:pixi-viewport@5.0.2/dist/pixi_viewport.js",
-      "pixi.js": "https://ga.jspm.io/npm:pixi.js@7.2.4/lib/index.mjs"
-    },
-    "scopes": {
-      "https://ga.jspm.io/": {
-        "#util.inspect.js": "https://ga.jspm.io/npm:@jspm/core@2.0.1/nodelibs/@empty.js",
-        "@kurkle/color": "https://ga.jspm.io/npm:@kurkle/color@0.3.2/dist/color.esm.js",
-        "@pixi/accessibility": "https://ga.jspm.io/npm:@pixi/accessibility@7.2.4/lib/index.mjs",
-        "@pixi/app": "https://ga.jspm.io/npm:@pixi/app@7.2.4/lib/index.mjs",
-        "@pixi/assets": "https://ga.jspm.io/npm:@pixi/assets@7.2.4/lib/index.mjs",
-        "@pixi/color": "https://ga.jspm.io/npm:@pixi/color@7.2.4/lib/index.mjs",
-        "@pixi/compressed-textures": "https://ga.jspm.io/npm:@pixi/compressed-textures@7.2.4/lib/index.mjs",
-        "@pixi/constants": "https://ga.jspm.io/npm:@pixi/constants@7.2.4/lib/index.mjs",
-        "@pixi/core": "https://ga.jspm.io/npm:@pixi/core@7.2.4/lib/index.mjs",
-        "@pixi/display": "https://ga.jspm.io/npm:@pixi/display@7.2.4/lib/index.mjs",
-        "@pixi/events": "https://ga.jspm.io/npm:@pixi/events@7.2.4/lib/index.mjs",
-        "@pixi/extensions": "https://ga.jspm.io/npm:@pixi/extensions@7.2.4/lib/index.mjs",
-        "@pixi/extract": "https://ga.jspm.io/npm:@pixi/extract@7.2.4/lib/index.mjs",
-        "@pixi/filter-alpha": "https://ga.jspm.io/npm:@pixi/filter-alpha@7.2.4/lib/index.mjs",
-        "@pixi/filter-blur": "https://ga.jspm.io/npm:@pixi/filter-blur@7.2.4/lib/index.mjs",
-        "@pixi/filter-color-matrix": "https://ga.jspm.io/npm:@pixi/filter-color-matrix@7.2.4/lib/index.mjs",
-        "@pixi/filter-displacement": "https://ga.jspm.io/npm:@pixi/filter-displacement@7.2.4/lib/index.mjs",
-        "@pixi/filter-fxaa": "https://ga.jspm.io/npm:@pixi/filter-fxaa@7.2.4/lib/index.mjs",
-        "@pixi/filter-noise": "https://ga.jspm.io/npm:@pixi/filter-noise@7.2.4/lib/index.mjs",
-        "@pixi/graphics": "https://ga.jspm.io/npm:@pixi/graphics@7.2.4/lib/index.mjs",
-        "@pixi/math": "https://ga.jspm.io/npm:@pixi/math@7.2.4/lib/index.mjs",
-        "@pixi/mesh": "https://ga.jspm.io/npm:@pixi/mesh@7.2.4/lib/index.mjs",
-        "@pixi/mesh-extras": "https://ga.jspm.io/npm:@pixi/mesh-extras@7.2.4/lib/index.mjs",
-        "@pixi/mixin-cache-as-bitmap": "https://ga.jspm.io/npm:@pixi/mixin-cache-as-bitmap@7.2.4/lib/index.mjs",
-        "@pixi/mixin-get-child-by-name": "https://ga.jspm.io/npm:@pixi/mixin-get-child-by-name@7.2.4/lib/index.mjs",
-        "@pixi/mixin-get-global-position": "https://ga.jspm.io/npm:@pixi/mixin-get-global-position@7.2.4/lib/index.mjs",
-        "@pixi/particle-container": "https://ga.jspm.io/npm:@pixi/particle-container@7.2.4/lib/index.mjs",
-        "@pixi/prepare": "https://ga.jspm.io/npm:@pixi/prepare@7.2.4/lib/index.mjs",
-        "@pixi/runner": "https://ga.jspm.io/npm:@pixi/runner@7.2.4/lib/index.mjs",
-        "@pixi/settings": "https://ga.jspm.io/npm:@pixi/settings@7.2.4/lib/index.mjs",
-        "@pixi/sprite": "https://ga.jspm.io/npm:@pixi/sprite@7.2.4/lib/index.mjs",
-        "@pixi/sprite-animated": "https://ga.jspm.io/npm:@pixi/sprite-animated@7.2.4/lib/index.mjs",
-        "@pixi/sprite-tiling": "https://ga.jspm.io/npm:@pixi/sprite-tiling@7.2.4/lib/index.mjs",
-        "@pixi/spritesheet": "https://ga.jspm.io/npm:@pixi/spritesheet@7.2.4/lib/index.mjs",
-        "@pixi/text": "https://ga.jspm.io/npm:@pixi/text@7.2.4/lib/index.mjs",
-        "@pixi/text-bitmap": "https://ga.jspm.io/npm:@pixi/text-bitmap@7.2.4/lib/index.mjs",
-        "@pixi/text-html": "https://ga.jspm.io/npm:@pixi/text-html@7.2.4/lib/index.mjs",
-        "@pixi/ticker": "https://ga.jspm.io/npm:@pixi/ticker@7.2.4/lib/index.mjs",
-        "@pixi/utils": "https://ga.jspm.io/npm:@pixi/utils@7.2.4/lib/index.mjs",
-        "call-bind/callBound": "https://ga.jspm.io/npm:call-bind@1.0.2/callBound.js",
-        "colord": "https://ga.jspm.io/npm:colord@2.9.3/index.mjs",
-        "colord/plugins/names": "https://ga.jspm.io/npm:colord@2.9.3/plugins/names.mjs",
-        "earcut": "https://ga.jspm.io/npm:earcut@2.2.4/src/earcut.js",
-        "eventemitter3": "https://ga.jspm.io/npm:eventemitter3@4.0.7/index.js",
-        "function-bind": "https://ga.jspm.io/npm:function-bind@1.1.1/index.js",
-        "get-intrinsic": "https://ga.jspm.io/npm:get-intrinsic@1.2.1/index.js",
-        "has": "https://ga.jspm.io/npm:has@1.0.3/src/index.js",
-        "has-proto": "https://ga.jspm.io/npm:has-proto@1.0.1/index.js",
-        "has-symbols": "https://ga.jspm.io/npm:has-symbols@1.0.3/index.js",
-        "ismobilejs": "https://ga.jspm.io/npm:ismobilejs@1.1.1/cjs/index.js",
-        "object-inspect": "https://ga.jspm.io/npm:object-inspect@1.12.3/index.js",
-        "punycode": "https://ga.jspm.io/npm:punycode@1.4.1/punycode.js",
-        "qs": "https://ga.jspm.io/npm:qs@6.11.2/lib/index.js",
-        "side-channel": "https://ga.jspm.io/npm:side-channel@1.0.4/index.js",
-        "url": "https://ga.jspm.io/npm:url@0.11.2/url.js"
-      }
-    }
-  }
-  </script>
-
-  <!-- <script src="./out/util.js"></script> -->
-  <script type="module" src="./out/app.js"></script>
+  <meta charset="UTF-8" />
+  <link rel="icon" href="/favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vuetify 3</title>
 </head>
 
 <body>
-  <div>
-    <!-- <canvas id="myChart"></canvas> -->
-  </div>
+  <div id="app"></div>
+  <script type="module" src="/src/main.ts"></script>
 </body>
 
 </html>
