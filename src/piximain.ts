@@ -8,195 +8,210 @@ import { Path } from './path.js';
 import * as Chart from 'chart.js'
 
 namespace app.global {
-  export let pixiApp: PIXI.Application
-  export let viewport: Viewport
-  export let path: Path
-  export let mazeview: MazeView
-  export let pointerCircle: PIXI.Graphics
-  export let debugObject: PIXI.Graphics
+    export let pixiApp: PIXI.Application
+    export let viewport: Viewport
+    export let path: Path
+    export let mazeview: MazeView
+    export let pointerCircle: PIXI.Graphics
+    export let debugObject: PIXI.Graphics
 }
 
 function createPixiApp(): PIXI.Application {
-  const pixiApp = new PIXI.Application<HTMLCanvasElement>({
-    view: <HTMLCanvasElement>document.getElementById("pixiCanvas"),
-    antialias: true,
-    backgroundColor: 0xE0E0E0
-  })
-  // const pixiApp = new PIXI.Application<HTMLCanvasElement>({
-  // const pixiApp = new PIXI.Application<HTMLCanvasElement>({
-  //   width: 1920,
-  //   height: 1080,
-  //   backgroundColor: 0xE0E0E0
-  // });
-  pixiApp.view.style.width = '100%';
-  pixiApp.view.style.height = '100%';
-  // document.body.appendChild(pixiApp.view);
+    const pixiApp = new PIXI.Application<HTMLCanvasElement>({
+        view: <HTMLCanvasElement>document.getElementById("pixiCanvas"),
+        antialias: true,
+        backgroundColor: 0xE0E0E0
+    })
+    // const pixiApp = new PIXI.Application<HTMLCanvasElement>({
+    // const pixiApp = new PIXI.Application<HTMLCanvasElement>({
+    //   width: 1920,
+    //   height: 1080,
+    //   backgroundColor: 0xE0E0E0
+    // });
+    // pixiApp.view.style.width = '100%';
+    // pixiApp.view.style.height = '100%';
+    // document.body.appendChild(pixiApp.view);
 
-  pixiApp.renderer
-  pixiApp.ticker.start();
-  return pixiApp
+    pixiApp.renderer
+    pixiApp.ticker.start();
+    return pixiApp
 }
 
 function createViewport(app: PIXI.Application): Viewport {
 
-  const WORLD_WIDTH = 2000
-  const WORLD_HEIGHT = 2000
-  const viewport = new Viewport({
-    worldWidth: WORLD_WIDTH,
-    worldHeight: WORLD_HEIGHT,
-    // screenWidth: window.innerWidth,
-    // screenHeight: window.innerHeight,
-    events: app.renderer.events,
-  })
-    .drag()
-    .pinch({ percent: 2 })
-    .wheel()
-    .decelerate();
+    const WORLD_WIDTH = 200
+    const WORLD_HEIGHT = 200
+    const viewport = new Viewport({
+        worldWidth: WORLD_WIDTH,
+        worldHeight: WORLD_HEIGHT,
+        events: app.renderer.events,
+    })
+        .drag()
+        .pinch({ percent: 2 })
+        .wheel()
+        .decelerate();
 
-  // fit and center the world into the panel
-  viewport.fit()
-  // viewport.moveCenter(WORLD_WIDTH / 2, WORLD_HEIGHT / 2)
-  viewport.moveCenter(0, 0)
-  // viewport.zoom(0.00001)
+    // fit and center the world into the panel
+    viewport.fit()
+    viewport.moveCenter(0, 0)
 
-  viewport.eventMode = 'static'
+    viewport.eventMode = 'static'
 
-  const onResize = () => {
-    app.renderer.resize(window.innerWidth, window.innerHeight);
-    viewport.resize(window.innerWidth, window.innerHeight);
-  };
-  window.addEventListener("resize", onResize);
+    const onResize = () => {
+        const div = <HTMLCanvasElement>document.getElementById("divCanvasArea");
+        const canvas = <HTMLCanvasElement>document.getElementById("pixiCanvas");
+        const clientRect = div.getBoundingClientRect()
+        canvas.style.left = clientRect.left + "px"
+        canvas.style.top = clientRect.top + "px"
+        console.log(clientRect.left, clientRect.top)
+        app.renderer.resize(div.clientWidth, div.clientHeight);
+        viewport.resize(div.clientWidth, div.clientHeight);
+        console.log("div.clientWidth:", div.clientWidth, ",div.clientHeight:", div.clientHeight)
+        console.log("canvas.clientWidth:", canvas.clientWidth, ",canvas.clientHeight:", canvas.clientHeight)
 
-  app.stage.addChild(viewport);
+    };
+    window.addEventListener("resize", onResize);
 
-  app.renderer.resize(window.innerWidth, window.innerHeight);
-  viewport.resize(window.innerWidth, window.innerHeight);
-  return viewport
+    app.stage.addChild(viewport);
+
+    const div = <HTMLCanvasElement>document.getElementById("divCanvasArea");
+    const canvas = <HTMLCanvasElement>document.getElementById("pixiCanvas");
+    const clientRect = div.getBoundingClientRect()
+    canvas.style.left = clientRect.left + "px"
+    canvas.style.top = clientRect.top + "px"
+    console.log(clientRect.left, clientRect.top)
+    app.renderer.resize(div.clientWidth, div.clientHeight);
+    viewport.resize(div.clientWidth, div.clientHeight);
+    console.log("div.clientWidth:", div.clientWidth, ",div.clientHeight:", div.clientHeight)
+    console.log("canvas.clientWidth:", canvas.clientWidth, ",canvas.clientHeight:", canvas.clientHeight)
+    return viewport
 }
 
 
 
 function onPointerMove(event) {
-  const cursor: USER.Point = event.getLocalPosition(this);
-  app.global.pointerCircle.x = cursor.x
-  app.global.pointerCircle.y = cursor.y
+    const cursor: USER.Point = event.getLocalPosition(this);
+    app.global.pointerCircle.x = cursor.x
+    app.global.pointerCircle.y = cursor.y
 
-  app.global.debugObject.clear();
-  app.global.debugObject.lineStyle(1, 0x000000, 0.8);
+    app.global.debugObject.clear();
+    app.global.debugObject.lineStyle(1, 0x000000, 0.8);
 
-  const info = app.global.path.getClosestPointInfo(cursor)
-  if (info == undefined) { return }
-  console.log("x:", info.point.x, "y:", info.point.y, "dist:%.2f", info.distanceFromStart.toFixed(3), ", %:", (info.distPercent * 100).toFixed(4), "angle:", (info.direction + Math.PI) * (180 / Math.PI))
+    const info = app.global.path.getClosestPointInfo(cursor)
+    if (info == undefined) { return }
+    console.log("x:", info.point.x, "y:", info.point.y, "dist:%.2f", info.distanceFromStart.toFixed(3), ", %:", (info.distPercent * 100).toFixed(4), "angle:", (info.direction + Math.PI) * (180 / Math.PI))
 
-  /* draw △ */
-  app.global.debugObject.drawRegularPolygon(info.point.x, info.point.y, 10, 3, info.direction - Math.PI / 2)
+    /* draw △ */
+    app.global.debugObject.drawRegularPolygon(info.point.x, info.point.y, 10, 3, info.direction - Math.PI / 2)
 
-  const point = app.global.path.getPointByDistance(1300.0)
-  app.global.debugObject.drawCircle(point.x, point.y, 10)
+    const point = app.global.path.getPointByDistance(1300.0)
+    app.global.debugObject.drawCircle(point.x, point.y, 10)
 
-  /* TODO: line tooltip */
+    /* TODO: line tooltip */
 }
 
 export function app_main() {
 
-  app.global.pixiApp = createPixiApp()
-  app.global.viewport = createViewport(app.global.pixiApp)
-  app.global.mazeview = new MazeView(app.global.pixiApp.renderer, app.global.viewport)
-  app.global.mazeview.drawMaze()
-  app.global.path = new Path(app.global.viewport)
-  app.global.path.drawPath()
+    app.global.pixiApp = createPixiApp()
+    app.global.viewport = createViewport(app.global.pixiApp)
+    // --------------------------
+    app.global.mazeview = new MazeView(app.global.pixiApp.renderer, app.global.viewport)
+    app.global.mazeview.drawMaze()
+    app.global.path = new Path(app.global.viewport)
+    app.global.path.drawPath()
 
-  app.global.viewport.on('pointermove', onPointerMove)
+    app.global.viewport.on('pointermove', onPointerMove)
 
-  app.global.pointerCircle = new PIXI.Graphics()
-  app.global.pointerCircle.lineStyle(1, 0x000000)
-  app.global.pointerCircle.drawCircle(0, 0, 20)
-  app.global.viewport.addChild(app.global.pointerCircle)
+    app.global.pointerCircle = new PIXI.Graphics()
+    app.global.pointerCircle.lineStyle(1, 0x000000)
+    app.global.pointerCircle.drawCircle(0, 0, 20)
+    app.global.viewport.addChild(app.global.pointerCircle)
 
-  app.global.debugObject = new PIXI.Graphics();
-  app.global.debugObject.lineStyle(1, 0x000000, 0.8);
-  app.global.viewport.addChild(app.global.debugObject);
+    app.global.debugObject = new PIXI.Graphics();
+    app.global.debugObject.lineStyle(1, 0x000000, 0.8);
+    app.global.viewport.addChild(app.global.debugObject);
+    // --------------------------
 
-  // const pathData: number[] = []
-  // let dist = 0;
-  // while (dist < app.global.path.totalLength) {
-  //     // while (dist < 3) {
-  //     let point = app.global.path.getPointByDistance(dist)
-  //     let info = app.global.path.getClosestPointInfo(point)
+    // const pathData: number[] = []
+    // let dist = 0;
+    // while (dist < app.global.path.totalLength) {
+    //     // while (dist < 3) {
+    //     let point = app.global.path.getPointByDistance(dist)
+    //     let info = app.global.path.getClosestPointInfo(point)
 
-  //     pathData.push(info.direction * 180 / Math.PI)
-  //     dist += 1
-  // }
+    //     pathData.push(info.direction * 180 / Math.PI)
+    //     dist += 1
+    // }
 
-  // Chart.Chart.register(...Chart.registerables);
-  // const ctx = document.getElementById('myChart') as HTMLCanvasElement;
+    // Chart.Chart.register(...Chart.registerables);
+    // const ctx = document.getElementById('myChart') as HTMLCanvasElement;
 
-  // const colors = [
-  //     "rgba(255,0,0,0.5)",
-  //     "rgba(0,255,0,0.5)",
-  //     "rgba(0,0,255,0.5)",
-  //     "rgba(255,128,0,0.5)",
-  //     "rgba(0,255,255,0.5)",
-  //     "rgba(0,0,0,0.5)",
-  //     "rgba(255,0,255,0.5)"
-  // ];
+    // const colors = [
+    //     "rgba(255,0,0,0.5)",
+    //     "rgba(0,255,0,0.5)",
+    //     "rgba(0,0,255,0.5)",
+    //     "rgba(255,128,0,0.5)",
+    //     "rgba(0,255,255,0.5)",
+    //     "rgba(0,0,0,0.5)",
+    //     "rgba(255,0,255,0.5)"
+    // ];
 
-  // let col_num = 3;
-  // let data_count = 50;
-  // let labels = [];
-  // for (let i = 1; i <= data_count; i++) {
-  //     labels.push(i);
-  // }
-  // let datas = [];
-  // for (let i = 0; i < labels.length; i++) {
-  //     datas.push(Math.floor(Math.random() * 10));
-  // }
-  // let datasets = [
-  //     {
-  //         data: datas,
-  //         borderColor: colors[col_num],
-  //         backgroundColor: colors[col_num],
-  //         label: "graph-2"
-  //     }
-  // ];
+    // let col_num = 3;
+    // let data_count = 50;
+    // let labels = [];
+    // for (let i = 1; i <= data_count; i++) {
+    //     labels.push(i);
+    // }
+    // let datas = [];
+    // for (let i = 0; i < labels.length; i++) {
+    //     datas.push(Math.floor(Math.random() * 10));
+    // }
+    // let datasets = [
+    //     {
+    //         data: datas,
+    //         borderColor: colors[col_num],
+    //         backgroundColor: colors[col_num],
+    //         label: "graph-2"
+    //     }
+    // ];
 
-  // const chart_plugin = function (target) {
-  //     let ctx = target.ctx;
-  //     var x = chart_2.tooltip.caretX;
-  //     var topY = chart_2.chartArea.top;
-  //     var bottomY = chart_2.chartArea.bottom;
-  //     ctx.save();
-  //     ctx.beginPath();
-  //     ctx.moveTo(x, topY);
-  //     ctx.lineTo(x, bottomY);
-  //     ctx.lineWidth = 2.0;
-  //     ctx.strokeStyle = 'red';
-  //     ctx.stroke();
-  //     ctx.restore();
-  // };
+    // const chart_plugin = function (target) {
+    //     let ctx = target.ctx;
+    //     var x = chart_2.tooltip.caretX;
+    //     var topY = chart_2.chartArea.top;
+    //     var bottomY = chart_2.chartArea.bottom;
+    //     ctx.save();
+    //     ctx.beginPath();
+    //     ctx.moveTo(x, topY);
+    //     ctx.lineTo(x, bottomY);
+    //     ctx.lineWidth = 2.0;
+    //     ctx.strokeStyle = 'red';
+    //     ctx.stroke();
+    //     ctx.restore();
+    // };
 
-  // let options = {
-  //     responsive: true,
-  //     tooltips: {
-  //         intersect: false,
-  //         mode: 'index',
-  //         axis: 'x'
-  //     },
-  // };
+    // let options = {
+    //     responsive: true,
+    //     tooltips: {
+    //         intersect: false,
+    //         mode: 'index',
+    //         axis: 'x'
+    //     },
+    // };
 
-  // // view
-  // const chart_2 = new Chart.Chart(ctx, {
-  //     type: "line",
-  //     data: {
-  //         labels: labels,
-  //         datasets: datasets
-  //     },
-  //     options: options,
-  //     plugins: [{
-  //         id: "s",
-  //         beforeDraw: chart_plugin.bind(this)
-  //     }]
-  // });
+    // // view
+    // const chart_2 = new Chart.Chart(ctx, {
+    //     type: "line",
+    //     data: {
+    //         labels: labels,
+    //         datasets: datasets
+    //     },
+    //     options: options,
+    //     plugins: [{
+    //         id: "s",
+    //         beforeDraw: chart_plugin.bind(this)
+    //     }]
+    // });
 
 }
 ////////////////////////////////////////////////////

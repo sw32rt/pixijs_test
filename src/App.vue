@@ -1,102 +1,95 @@
 <style>
-.divcontainer::after {
-    content: '';
-    display: block;
-    clear: both;
+* {
+    margin: 0;
+    padding: 0;
+}
+
+.app {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    height: 48px;
+    background-color: lightcyan;
+    box-sizing: border-box;
+    border: 8px solid blue;
+}
+
+.main {
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+.sidebar {
+    width: 96px;
+    background-color: moccasin;
+    box-sizing: border-box;
+    border: 8px solid chocolate;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.flex-content {
+    flex-grow: 1;
+    background-color: palegoldenrod;
+    box-sizing: border-box;
+    border: 8px solid green;
+}
+
+.fixed-content {
+    height: 128px;
+    background-color: thistle;
+    box-sizing: border-box;
+    border: 8px solid darkmagenta;
+}
+
+#divCanvasArea {
+    flex-grow: 1;
+    background-color: palegoldenrod;
+    box-sizing: border-box;
+    border: 0px solid green;
+}
+
+#pixiCanvas {
+    position: absolute;
+    top: 0;
+    left: 0
 }
 </style>
 
 <template>
     <v-app id="inspire">
-        <v-system-bar>
-            <v-spacer></v-spacer>
+        <div class="app">
+            <div class="header">ヘッダー</div>
+            <div class="main">
+                <div class="sidebar">サイドバー</div>
+                <div class="content">
+                    <div id="divCanvasArea" class="flex-content">
+                        <!-- コンテンツ1 -->
+                        <canvas id="pixiCanvas"></canvas>
 
-            <v-icon>mdi-square</v-icon>
-
-            <v-icon>mdi-circle</v-icon>
-
-            <v-icon>mdi-triangle</v-icon>
-        </v-system-bar>
-        <v-layout style="height: 128px;" class="border rounded">
-            <div class="mx-auto my-4">
-                <v-btn color="deep-purple" variant="outlined" @click="active = !active">
-                    Toggle Navigation
-                </v-btn>
+                    </div>
+                    <div class=" fixed-content">コンテンツ2</div>
+                </div>
             </div>
-
-            <v-bottom-navigation :active="active" color="indigo">
-                <v-btn>
-                    <v-icon>mdi-history</v-icon>
-
-                    Recents
-                </v-btn>
-
-                <v-btn>
-                    <v-icon>mdi-heart</v-icon>
-
-                    Favorites
-                </v-btn>
-
-                <v-btn>
-                    <v-icon>mdi-map-marker</v-icon>
-
-                    Nearby
-                </v-btn>
-            </v-bottom-navigation>
-
-        </v-layout>
-
-
-
-        <v-card location="bottom">
-            <v-tabs v-model="tab" bg-color="grey-lighten-1">
-                <v-tab value="one">Item One</v-tab>
-                <v-tab value="twi">Item Twooooo</v-tab>
-                <v-tab v-on:click="onclick" value="three">Item Three</v-tab>
-            </v-tabs>
-
-
-            <v-navigation-drawer color="grey-lighten-3" rail>
-                <v-avatar class="d-block text-center mx-auto mt-4" color="grey-darken-1" size="36"></v-avatar>
-
-                <v-divider class="mx-3 my-5"></v-divider>
-
-                <v-avatar v-for="n in 6" :key="n" class="d-block text-center mx-auto mb-9" color="grey-lighten-1"
-                    size="28"></v-avatar>
-            </v-navigation-drawer>
-
-            <v-navigation-drawer width="244">
-                <v-sheet color="grey-lighten-5" height="128" width="100%"></v-sheet>
-
-                <v-list>
-                    <v-list-item v-for="n in 5" :key="n" :title="`Item ${n}`" link></v-list-item>
-                </v-list>
-            </v-navigation-drawer>
-
-
-            <v-card-text>
-                <v-window v-model="tab">
-                    <v-window-item value="one">
-                        One
-                    </v-window-item>
-
-                    <v-window-item value="twi">
-                        Twoeeeeeeeeee
-                    </v-window-item>
-
-                    <v-window-item value="three">
-                        Three
-                    </v-window-item>
-                </v-window>
-            </v-card-text>
-        </v-card>
-
-        <div class="divcontainer">
+        </div>
+        <!-- <div class="divcontainer">
             <v-main style="height: 100%">
                 <canvas id="pixiCanvas"></canvas>
             </v-main>
         </div>
 
+        <v-navigation-drawer location="left">
+
+        </v-navigation-drawer>
 
         <v-navigation-drawer location="right">
             <v-list>
@@ -109,7 +102,7 @@
                 </template>
             </v-slider>
 
-        </v-navigation-drawer>
+        </v-navigation-drawer> -->
 
 
 
@@ -119,6 +112,7 @@
 <script lang="ts">
 import { app_main } from "./piximain.ts"
 
+// import ResizableDivView from './components/ResizableDivView.vue';
 export default {
     data() {
         return {
@@ -130,14 +124,19 @@ export default {
     },
     methods: {
         onclick() {
-
         }
     },
     mounted() {
         app_main()
     },
+    // components: {
+    //     ResizableDivView
+    // },
+
 
 
 
 }
+
+
 </script>
