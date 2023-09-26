@@ -25,7 +25,7 @@
 }
 
 .sidebar {
-    width: 96px;
+    width: 300px;
     background-color: moccasin;
     box-sizing: border-box;
     border: 8px solid chocolate;
@@ -53,15 +53,33 @@
 
 #divCanvasArea {
     flex-grow: 1;
-    background-color: palegoldenrod;
-    box-sizing: border-box;
-    border: 0px solid green;
+    background-color: black;
+    border: 0px;
 }
 
 #pixiCanvas {
     position: absolute;
     top: 0;
-    left: 0
+    left: 0;
+    z-index: 2;
+}
+
+
+#chart1_tipLayer {
+    position: absolute;
+    z-index: 2;
+}
+
+#chart1_mainLayer {
+    position: absolute;
+    z-index: 3;
+}
+
+.chart_stage {
+    /* width: 480px; */
+    /* height: 320px; */
+    position: relative;
+    border: 2px solid black;
 }
 </style>
 
@@ -70,13 +88,21 @@
         <div class="app">
             <div class="header">ヘッダー</div>
             <div class="main">
-                <div class="sidebar">サイドバー</div>
-                <div class="content">
-                    <div id="divCanvasArea" class="flex-content">
-                        <!-- コンテンツ1 -->
-                        <canvas id="pixiCanvas"></canvas>
-
+                <div class="sidebar">サイドバー
+                    <!-- 左描画エリア -->
+                    <div class="chart_stage">
+                        <canvas id="chart1_mainLayer"></canvas>
+                        <canvas id="chart1_tipLayer"></canvas>
                     </div>
+                </div>
+
+                <!-- 真ん中 -->
+                <div class="content">
+                    <!-- キャンバス描画エリア -->
+                    <div id="divCanvasArea" class="flex-content">
+                        <canvas id="pixiCanvas"></canvas>
+                    </div>
+                    <!-- 下描画エリア -->
                     <div class=" fixed-content">コンテンツ2</div>
                 </div>
             </div>

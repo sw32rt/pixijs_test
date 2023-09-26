@@ -94,7 +94,7 @@ function app_main() {
     //     dist += 1
     // }
     // Chart.Chart.register(...Chart.registerables);
-    // const ctx = document.getElementById('myChart') as HTMLCanvasElement;
+    // const ctx = document.getElementById('chart1') as HTMLCanvasElement;
     // const colors = [
     //     "rgba(255,0,0,0.5)",
     //     "rgba(0,255,0,0.5)",
@@ -164,7 +164,7 @@ function app_main() {
 //         myCustomPositioner: Chart.TooltipPositionerFunction<Chart.ChartType>;
 //     }
 // }
-// var ctx = document.getElementById("myChart");
+// var ctx = document.getElementById("chart1_mainLayer");
 // var activeIndex = 0;
 // const tooltipPlugin = Chart.registry.getPlugin('tooltip');
 // Chart.Tooltip.positioners.myCustomPositioner = function (elements, e) {
@@ -250,7 +250,7 @@ function app_main() {
 //     ctx.stroke();
 //     ctx.closePath();
 // };
-// var myChart = new Chart(ctx, {
+// var chart1 = new Chart(ctx, {
 //     type: "bar",
 //     data: {
 //         labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
