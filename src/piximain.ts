@@ -14,6 +14,8 @@ namespace app.global {
     export let mazeview: MazeView
     export let pointerCircle: PIXI.Graphics
     export let debugObject: PIXI.Graphics
+    export let charts: { chart: Chart.Chart; cursor: PIXI.Graphics }[] = []
+
 }
 
 function createPixiApp(): PIXI.Application {
@@ -54,11 +56,8 @@ function createViewport(app: PIXI.Application): Viewport {
         const clientRect = div.getBoundingClientRect()
         canvas.style.left = clientRect.left + "px"
         canvas.style.top = clientRect.top + "px"
-        console.log(clientRect.left, clientRect.top)
         app.renderer.resize(div.clientWidth, div.clientHeight);
         viewport.resize(div.clientWidth, div.clientHeight);
-        console.log("div.clientWidth:", div.clientWidth, ",div.clientHeight:", div.clientHeight)
-        console.log("canvas.clientWidth:", canvas.clientWidth, ",canvas.clientHeight:", canvas.clientHeight)
 
     };
     window.addEventListener("resize", onResize);
@@ -70,11 +69,8 @@ function createViewport(app: PIXI.Application): Viewport {
     const clientRect = div.getBoundingClientRect()
     canvas.style.left = clientRect.left + "px"
     canvas.style.top = clientRect.top + "px"
-    console.log(clientRect.left, clientRect.top)
     app.renderer.resize(div.clientWidth, div.clientHeight);
     viewport.resize(div.clientWidth, div.clientHeight);
-    console.log("div.clientWidth:", div.clientWidth, ",div.clientHeight:", div.clientHeight)
-    console.log("canvas.clientWidth:", canvas.clientWidth, ",canvas.clientHeight:", canvas.clientHeight)
     return viewport
 }
 
@@ -90,20 +86,22 @@ function onPointerMove(event) {
 
     const info = app.global.path.getClosestPointInfo(cursor)
     if (info == undefined) { return }
-    console.log("x:", info.point.x, "y:", info.point.y, "dist:%.2f", info.distanceFromStart.toFixed(3), ", %:", (info.distPercent * 100).toFixed(4), "angle:", (info.direction + Math.PI) * (180 / Math.PI))
+    // console.log("x:", info.point.x, "y:", info.point.y, "dist:%.2f", info.distanceFromStart.toFixed(3), ", %:", (info.distPercent * 100).toFixed(4), "angle:", (info.direction + Math.PI) * (180 / Math.PI))
 
     /* draw △ */
-    app.global.debugObject.drawRegularPolygon(info.point.x, info.point.y, 10, 3, info.direction - Math.PI / 2)
+    app.global.debugObject.drawRegularPolygon(info.point.x, info.point.y, 10, 3, info.direction + Math.PI / 2)
 
     const point = app.global.path.getPointByDistance(1300.0)
     app.global.debugObject.drawCircle(point.x, point.y, 10)
 
-    const offsetx = chart1.chartArea.left + ((chart1.chartArea.right - chart1.chartArea.left) * info.distPercent)
-    chart1.tooltip.caretX = offsetx
-    chart1_cursor.x = offsetx
+    app.global.charts.forEach(element => {
+        const chart = element.chart
+        const cursor = element.cursor
+        const offsetx = chart.chartArea.left + ((chart.chartArea.right - chart.chartArea.left) * info.distPercent)
+        chart.tooltip.caretX = offsetx
+        cursor.x = offsetx
+    });
 }
-let chart1: Chart.Chart
-let chart1_cursor: PIXI.Graphics
 
 
 
@@ -111,7 +109,6 @@ export function app_main() {
 
     app.global.pixiApp = createPixiApp()
     app.global.viewport = createViewport(app.global.pixiApp)
-    // --------------------------
     app.global.mazeview = new MazeView(app.global.pixiApp.renderer, app.global.viewport)
     app.global.mazeview.drawMaze()
     app.global.path = new Path(app.global.viewport)
@@ -127,20 +124,49 @@ export function app_main() {
     app.global.debugObject = new PIXI.Graphics();
     app.global.debugObject.lineStyle(1, 0x000000, 0.8);
     app.global.viewport.addChild(app.global.debugObject);
-    // --------------------------
 
-    const pathData: number[] = []
-    let labels = [];
+    /* chart ============================== */
+    Chart.Chart.register(...Chart.registerables);
+
+    const directionList: number[] = []
+    const radiusList: number[] = []
+    const curvatureList: number[] = []
     for (let i = 0; i < app.global.path.totalLength; i++) {
         let point = app.global.path.getPointByDistance(i)
         let info = app.global.path.getClosestPointInfo(point)
+        const digDir = (info.direction * 180 / Math.PI)
+        const digradius = (info.radius * 180 / Math.PI)
+        const digcurvature = (info.curvature * 180 / Math.PI)
+        directionList.push(digDir)
+        radiusList.push(digradius)
+        curvatureList.push(digcurvature)
+    }
 
-        pathData.push(info.direction * 180 / Math.PI)
+    let chartCanvas: HTMLCanvasElement
+    let cursorCanvas: HTMLCanvasElement
+
+    chartCanvas = document.getElementById("chart1_mainLayer") as HTMLCanvasElement
+    cursorCanvas = document.getElementById("chart1_tipLayer") as HTMLCanvasElement
+    app.global.charts.push(crateChart(chartCanvas, cursorCanvas, directionList))
+
+    chartCanvas = document.getElementById("chart2_mainLayer") as HTMLCanvasElement
+    cursorCanvas = document.getElementById("chart2_tipLayer") as HTMLCanvasElement
+    app.global.charts.push(crateChart(chartCanvas, cursorCanvas, radiusList))
+
+    chartCanvas = document.getElementById("chart3_mainLayer") as HTMLCanvasElement
+    cursorCanvas = document.getElementById("chart3_tipLayer") as HTMLCanvasElement
+    app.global.charts.push(crateChart(chartCanvas, cursorCanvas, curvatureList))
+
+}
+////////////////////////////////////////////////////
+
+function crateChart(chartCanvas: HTMLCanvasElement, cursorCanvas: HTMLCanvasElement, data: number[]): { chart: Chart.Chart; cursor: PIXI.Graphics } {
+    let labels = [];
+    for (let i = 0; i < data.length; i++) {
         labels.push(i);
     }
 
-    Chart.Chart.register(...Chart.registerables);
-    const ctx = document.getElementById("chart1_mainLayer") as HTMLCanvasElement;
+    const ctx = chartCanvas;
 
     const colors = [
         "rgba(255,0,0,0.5)",
@@ -152,31 +178,22 @@ export function app_main() {
         "rgba(255,0,255,0.5)"
     ];
 
-    let col_num = 3;
-    let data_count = 50;
-
     let datasets = [
         {
-            data: pathData,
-            borderColor: colors[col_num],
-            backgroundColor: colors[col_num],
-            label: "graph-2",
+            data: data,
+            borderColor: colors[3],
+            backgroundColor: colors[3],
             radius: 0,
-            borderWidth: 1
-        }
+            borderWidth: 3
+        },
     ];
 
     const chart_plugin = function (target) {
-        chart1_cursor.x = target.tooltip.caretX;
+        cursor.x = target.tooltip.caretX;
     };
 
     let options = {
         responsive: true,
-        tooltips: {
-            intersect: false,
-            mode: 'nearest',
-            axis: 'x'
-        },
         interaction: {
             intersect: false,
             mode: 'nearest',
@@ -185,7 +202,7 @@ export function app_main() {
     };
 
     // view
-    chart1 = new Chart.Chart(ctx, {
+    const chart = new Chart.Chart(ctx, {
         type: "line",
         data: {
             labels: labels,
@@ -198,26 +215,26 @@ export function app_main() {
         }]
     });
 
-    const te = new PIXI.Application({
-        view: <HTMLCanvasElement>document.getElementById("chart1_tipLayer"),
+    const layer = new PIXI.Application({
+        view: cursorCanvas,
         antialias: false,
         backgroundColor: 0x00,
         backgroundAlpha: 0,
     })
 
-    te.resizeTo = document.getElementById("chart1_mainLayer")
+    layer.resizeTo = chartCanvas
 
-    chart1_cursor = new PIXI.Graphics()
-    chart1_cursor.lineStyle(2, 0x0000FF, 0.8)
+    const cursor = new PIXI.Graphics()
+    cursor.lineStyle(2, 0x0000FF, 0.8)
     const x = 0;
-    const topY = chart1.chartArea.top;
-    const bottomY = chart1.chartArea.bottom;
-    chart1_cursor.moveTo(x, topY);
-    chart1_cursor.lineTo(x, bottomY);
-    chart1_cursor.x = chart1.chartArea.left
-    te.stage.addChild(chart1_cursor)
+    const topY = chart.chartArea.top;
+    const bottomY = chart.chartArea.bottom;
+    cursor.moveTo(x, topY);
+    cursor.lineTo(x, bottomY);
+    cursor.x = chart.chartArea.left
+    layer.stage.addChild(cursor)
+
+    return { chart: chart, cursor: cursor }
 
 }
-////////////////////////////////////////////////////
-
 

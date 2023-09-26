@@ -10,6 +10,7 @@ export class Path {
     private divpath: USER.PathPoint[] = []
     public totalLength: number
     private gr: PIXI.Graphics
+    private index: number
 
     constructor(container: PIXI.Container) {
         this.container = container
@@ -21,28 +22,14 @@ export class Path {
 
     public drawPath() {
 
-        // line.interactive = true;
-        // line.cursor = 'pointer'
         this.line.moveTo(0, 0)
         this.line.lineStyle(RESOLUTION * 1, 0x90D090, 0.5);
-
-        // line.drawCircle(100,100,100)
-
-        // line.lineTo(90, 0);
-        // line.lineTo(90, 90);
-
-        // this.line.quadraticCurveTo(RESOLUTION * 120, RESOLUTION * 380, RESOLUTION * 300, RESOLUTION * 500)
-        // this.line.quadraticCurveTo(RESOLUTION * 520, RESOLUTION * 580, RESOLUTION * 500, RESOLUTION * 300)
-        // this.line.lineTo(RESOLUTION * 500, RESOLUTION * 200)
-        // this.line.lineTo(RESOLUTION * 500, RESOLUTION * 0)
-        // this.line.lineTo(RESOLUTION * 700, RESOLUTION * 0)
 
         /* クロソイド曲線 */
         let t = 0;
         let x = 0;
         let y = -100;
         const dt = 0.001
-        const tmax = t + (2 * 3.14)
         this.line.moveTo(x, y)
 
         let curveScale = 90;
@@ -63,11 +50,12 @@ export class Path {
 
             if (ΔΘ >= endΔΘ) {
                 startArcΘ = Θ
-                // this.line.drawCircle(x, y, 2)
                 break
             }
             this.line.lineTo(x, y)
-            console.log("Θ", Θ, "prevΘ", prevΘ, "ΔΘ", ΔΘ / dt, "r", (dt * curveScale) / ΔΘ)
+            this.linepath.push({ x: x, y: y, index: this.index, direction: Θ, radius: ΔΘ / dt, curvature: ΔΔΘ / dt })
+            this.index++
+            // console.log("Θ", Θ, "prevΘ", prevΘ, "ΔΘ", ΔΘ / dt, "r", (dt * curveScale) / ΔΘ)
         }
         let first = 1;
         while (1) {
@@ -78,16 +66,15 @@ export class Path {
 
                 if (first) {
                     first = 0;
-                    // this.line.drawCircle(x, y, 2)
-
                 }
             }
             if (Θ >= startArcΘ + (((Math.PI / 2) - startArcΘ) * 2)) {
-                // this.line.drawCircle(x, y, 2)
                 break
             }
             this.line.lineTo(x, y)
-            console.log("Θ", Θ, "prevΘ", prevΘ, "ΔΘ", ΔΘ / dt, "r", (dt * curveScale) / ΔΘ)
+            this.linepath.push({ x: x, y: y, index: this.index, direction: Θ, radius: ΔΘ / dt, curvature: 0 })
+            this.index++
+            // console.log("Θ", Θ, "prevΘ", prevΘ, "ΔΘ", ΔΘ / dt, "r", (dt * curveScale) / ΔΘ)
         }
 
 
@@ -98,92 +85,18 @@ export class Path {
             Θ += ΔΘ
 
             this.line.lineTo(x, y)
-            console.log("Θ", Θ, "prevΘ", prevΘ, "ΔΘ", ΔΘ / dt, "r", (dt * curveScale) / ΔΘ)
+            this.linepath.push({ x: x, y: y, index: this.index, direction: Θ, radius: ΔΘ / dt, curvature: - ΔΔΘ / dt })
+            this.index++
+            // console.log("Θ", Θ, "prevΘ", prevΘ, "ΔΘ", ΔΘ / dt, "r", (dt * curveScale) / ΔΘ)
             if (ΔΘ <= 0) {
                 break
             }
         }
 
-
-        // while (t < tmax) {
-        //     if (ΔΘ < curveScale * dt / r_end) {
-        //         t += dt;
-        //         Θ = (t * t) / J
-        //     }
-        //     else {
-        //         Θ += ΔΘ
-        //         // this.line.lineStyle(RESOLUTION * 4, 0x90E0E0, 0.5);
-        //         count++
-        //     }
-        //     // Θ = t
-        //     x += Math.cos(Θ) * dt * curveScale;
-        //     y += Math.sin(Θ) * dt * curveScale;
-        //     ΔΘ = Θ - prevΘ;
-        //     console.log("Θ", Θ, "prevΘ", prevΘ, "ΔΘ", ΔΘ / dt, "r", (dt * curveScale) / ΔΘ)
-        //     prevΘ = Θ
-        //     /* r, Θをpathに */
-
-        //     if ((dt > 0) && (Θ >= startΘ + Math.PI / 2)) {
-        //         endΘ = Θ
-        //         break
-        //     }
-        //     else if ((dt < 0) && (Θ <= startΘ + Math.PI / 2)) {
-        //         endΘ = Θ
-        //         break
-        //     }
-        //     this.line.lineTo(x, y);
-        // }
-
-        // while (t < tmax * 2) {
-        //     if (count <= 0) {
-        //         t += dt;
-        //         // Θ = (Math.PI / 2) + endΘ - ((t * t) / J)
-        //         Θ = ((t * t) / J)
-        //         // this.line.lineStyle(RESOLUTION * 4, 0x90D090, 0.5);
-        //     }
-        //     else {
-        //         Θ += ΔΘ
-        //         count--
-        //     }
-        //     // Θ = t
-        //     x += Math.cos(Θ) * dt * curveScale;
-        //     y += Math.sin(Θ) * dt * curveScale;
-        //     ΔΘ = Θ - prevΘ;
-        //     this.line.lineTo(x, y);
-        //     console.log("Θ", Θ, "prevΘ", prevΘ, "ΔΘ", ΔΘ / dt, "r", (dt * curveScale) / ΔΘ)
-        //     /* r, Θをpathに */
-
-        //     // if ((dt > 0) && (Θ >= startΘ + Math.PI / 2)) {
-        //     //     break
-        //     // }
-        //     // else if ((dt < 0) && (Θ <= startΘ + Math.PI / 2)) {
-        //     //     break
-        //     // }
-        //     prevΘ = Θ
-        // }
-
-
         const scale: PIXI.IPointData = { x: 1 / RESOLUTION, y: 1 / RESOLUTION }
         this.line.scale = scale
         this.line.lineStyle();
         this.container.addChild(this.line)
-        // this.line.on('pointerdown', onDragStart, this.line);
-        // this.line.on('pointerup', onDragEnd);
-        // this.line.on('pointerupoutside', onDragEnd);
-        // this.line.on('pointermove', onDragMove)
-        console.log(this.line.geometry.points)
-        // line.containsPoint()
-
-        // const tex = pixiApp.renderer.generateTexture(line)
-        // const grSprite = new PIXI.Sprite(tex)
-        // grSprite.eventMode = 'static';
-        // grSprite.cursor = 'pointer'
-        // grSprite.x = 500
-        // grSprite.y = 500
-        // grSprite.on('pointerdown', onDragStart, grSprite);
-        // grSprite.on('pointerup', onDragEnd);
-        // grSprite.on('pointerupoutside', onDragEnd);
-        // this.container.addChild(grSprite)
 
         this.line.hitArea = {
             contains: (x: number, y: number) => {
@@ -218,19 +131,19 @@ export class Path {
             const y = points[index + 1];
         }
 
-        this.linepath = []
-        let i = 0;
-        for (let index = 0; index < points.length; index += 4) {
-            const x_odd = points[index + 0]
-            const y_odd = points[index + 1]
-            const x_even = points[index + 2]
-            const y_even = points[index + 3]
+        // this.linepath = []
+        // let i = 0;
+        // for (let index = 0; index < points.length; index += 4) {
+        //     const x_odd = points[index + 0]
+        //     const y_odd = points[index + 1]
+        //     const x_even = points[index + 2]
+        //     const y_even = points[index + 3]
 
-            const x_center = (x_odd + x_even) / 2
-            const y_center = (y_odd + y_even) / 2
-            this.linepath.push({ x: x_center / RESOLUTION, y: y_center / RESOLUTION, index: i })
-            i++
-        }
+        //     const x_center = (x_odd + x_even) / 2
+        //     const y_center = (y_odd + y_even) / 2
+        //     this.linepath.push({ x: x_center / RESOLUTION, y: y_center / RESOLUTION, index: i })
+        //     i++
+        // }
 
         /* path point 分割 */
         this.divpath = []
@@ -249,7 +162,7 @@ export class Path {
                 const x = this.linepath[i].x + ((xdiff / div) * (divCount + 1));
                 const y = this.linepath[i].y + ((ydiff / div) * (divCount + 1));
                 const index = newindex;
-                this.divpath.push({ x: x, y: y, index: index })
+                this.divpath.push({ x: x, y: y, index: index, direction: this.linepath[i].direction, radius: this.linepath[i].radius, curvature: this.linepath[i].curvature })
                 newindex++;
             }
         }
@@ -269,7 +182,7 @@ export class Path {
         });
 
         this.totalLength = this.divpath.at(-1).distanceFromStart;
-        console.log("total:" + this.totalLength)
+        // console.log("total:" + this.totalLength)
 
         const gr = new PIXI.Graphics()
         gr.lineStyle(0.1, 0x808000)
@@ -294,7 +207,15 @@ export class Path {
         return length
     }
 
-    public getClosestPointInfo(cursor: USER.Point): { closestIndex: number; point: USER.Point; distanceFromStart: number; distPercent: number; direction: number } {
+    public getClosestPointInfo(cursor: USER.Point): {
+        closestIndex: number;
+        point: USER.Point;
+        distanceFromStart: number;
+        distPercent: number;
+        direction: number;
+        radius: number;
+        curvature: number;
+    } {
 
         const { closest: closest, adjacent: adjacent } = this.searchClosestPoints(cursor)
         let indexBackward = closest
@@ -339,14 +260,18 @@ export class Path {
         let percent = length / this.totalLength
 
         /* direction */
-        const rad = Math.atan2(indexBackward.y - indexForward.y, indexBackward.x - indexForward.x)
+        // const rad = Math.atan2(indexBackward.y - indexForward.y, indexBackward.x - indexForward.x)
+        const radDIr = closest.direction
 
         return {
             closestIndex: closest.index,
             point: pointOnLineSegment,
             distanceFromStart: length,
             distPercent: percent,
-            direction: rad
+            direction: radDIr,
+            radius: closest.radius,
+            curvature: closest.curvature,
+
         }
     }
 

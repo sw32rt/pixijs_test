@@ -64,22 +64,18 @@
     z-index: 2;
 }
 
-
-#chart1_tipLayer {
-    position: absolute;
+.cursorCanvas {
+    position: relative;
     z-index: 2;
 }
 
-#chart1_mainLayer {
+.chartCanvas {
     position: absolute;
     z-index: 3;
 }
 
 .chart_stage {
-    /* width: 480px; */
-    /* height: 320px; */
-    position: relative;
-    border: 2px solid black;
+    border: 2px solid rgb(194, 146, 16);
 }
 </style>
 
@@ -91,8 +87,16 @@
                 <div class="sidebar">サイドバー
                     <!-- 左描画エリア -->
                     <div class="chart_stage">
-                        <canvas id="chart1_mainLayer"></canvas>
-                        <canvas id="chart1_tipLayer"></canvas>
+                        <canvas id="chart1_mainLayer" class="chartCanvas"></canvas>
+                        <canvas id="chart1_tipLayer" class="cursorCanvas"></canvas>
+                    </div>
+                    <div class="chart_stage">
+                        <canvas id="chart2_mainLayer" class="chartCanvas"></canvas>
+                        <canvas id="chart2_tipLayer" class="cursorCanvas"></canvas>
+                    </div>
+                    <div class="chart_stage">
+                        <canvas id="chart3_mainLayer" class="chartCanvas"></canvas>
+                        <canvas id="chart3_tipLayer" class="cursorCanvas"></canvas>
                     </div>
                 </div>
 
