@@ -98,6 +98,15 @@
                         <canvas id="chart3_mainLayer" class="chartCanvas"></canvas>
                         <canvas id="chart3_tipLayer" class="cursorCanvas"></canvas>
                     </div>
+                    <v-btn @click="onclick">
+                        Button
+                    </v-btn>
+                    <v-slider @update:model-value="onChange_R" @end="onSliderEnd_R" class="align-center" :max="200"
+                        :min="20" hide-details>
+                    </v-slider>
+                    <v-slider @update:model-value="onChange_ddR" @end="onSliderEnd_ddR" class="align-center" :max="10"
+                        :min="1" hide-details></v-slider>
+
                 </div>
 
                 <!-- 真ん中 -->
@@ -140,7 +149,8 @@
 </template>
 
 <script lang="ts">
-import { app_main } from "./piximain.ts"
+import { tSMethodSignature } from "@babel/types"
+import { app_main, updateChart, app } from "./piximain.ts"
 
 // import ResizableDivView from './components/ResizableDivView.vue';
 export default {
@@ -148,17 +158,68 @@ export default {
         return {
             tab: null,
             min: -50,
-            max: 90,
-            slider: 40,
+            max: 200,
+            sl: 100,
+            ddr: 0.01
+            // app.global.path.endR,
+        }
+    },
+    computed: {
+        aaa: {
+            get() {
+                return this.sl
+            },
+            set(newValue: number) {
+                // alert(newValue)
+
+                this.sl = newValue
+                app.global.path.endR = newValue
+                app.global.path.drawPath()
+                updateChart()
+            }
+        },
+        ddr: {
+            get() {
+                return this.ddr * 1000000
+            },
+            set(newValue: number) {
+                // alert(newValue)
+                newValue *= 0.000001
+                console.log(newValue)
+                this.ddr = newValue
+                app.global.path.ddr = newValue
+                app.global.path.drawPath()
+                updateChart()
+            }
         }
     },
     methods: {
         onclick() {
-        }
+            // app.global.path.endR = 50
+            app.global.path.drawPath()
+        },
+        onChange_R(value) {
+            app.global.path.endR = value
+            app.global.path.drawPath()
+        },
+        onSliderEnd_R() {
+            updateChart()
+
+        },
+        onChange_ddR(value) {
+            app.global.path.ddr = value * 0.0000001
+            app.global.path.drawPath()
+        },
+        onSliderEnd_ddR() {
+            updateChart()
+
+        },
+
     },
     mounted() {
         app_main()
     },
+
     // components: {
     //     ResizableDivView
     // },

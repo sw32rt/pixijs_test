@@ -11,34 +11,47 @@ export class Path {
     public totalLength: number
     private gr: PIXI.Graphics
     private index: number
+    private curveScale = 90;
+    private dt = 0.001
+    public endR: number = 100
+    public ddr: number = 0
 
     constructor(container: PIXI.Container) {
+
+        this.curveScale = 90;
+        this.dt = 0.001
+        this.endR = 100
+        this.ddr = (this.curveScale * this.dt * this.dt) / this.endR
+
         this.container = container
 
         this.gr = new PIXI.Graphics();
-        this.gr.lineStyle(1, 0);
         this.container.addChild(this.gr)
     }
 
     public drawPath() {
 
+        this.linepath = []
+        this.line.clear()
+        this.gr.clear()
         this.line.moveTo(0, 0)
         this.line.lineStyle(RESOLUTION * 1, 0x90D090, 0.5);
+        this.gr.lineStyle(1, 0);
 
         /* クロソイド曲線 */
         let t = 0;
         let x = 0;
         let y = -100;
-        const dt = 0.001
+        const dt = this.dt
         this.line.moveTo(x, y)
 
-        let curveScale = 90;
-        let endR = 60
+        let endR = this.endR
         let startΘ = 0
+        let curveScale = this.curveScale
         let Θ = startΘ
         let ΔΘ = 0
-        let endΔΘ = (curveScale * dt) / endR
-        let ΔΔΘ = (curveScale * dt * dt) / endR
+        let endΔΘ = (this.curveScale * dt) / endR
+        let ΔΔΘ = this.ddr
         let prevΘ = 0
         let startArcΘ = 0
         ΔΔΘ *= 2
@@ -50,6 +63,7 @@ export class Path {
 
             if (ΔΘ >= endΔΘ) {
                 startArcΘ = Θ
+                this.gr.drawCircle(x, y, 10)
                 break
             }
             this.line.lineTo(x, y)
@@ -69,6 +83,7 @@ export class Path {
                 }
             }
             if (Θ >= startArcΘ + (((Math.PI / 2) - startArcΘ) * 2)) {
+                this.gr.drawCircle(x, y, 10)
                 break
             }
             this.line.lineTo(x, y)
@@ -184,13 +199,12 @@ export class Path {
         this.totalLength = this.divpath.at(-1).distanceFromStart;
         // console.log("total:" + this.totalLength)
 
-        const gr = new PIXI.Graphics()
-        gr.lineStyle(0.1, 0x808000)
-        gr.moveTo(this.linepath[0].x, this.linepath[0].y)
+        this.gr.lineStyle(0.1, 0x808000)
+        this.gr.moveTo(this.linepath[0].x, this.linepath[0].y)
         this.linepath.forEach(element => {
-            gr.lineTo(element.x, element.y)
+            this.gr.lineTo(element.x, element.y)
         });
-        this.container.addChild(gr)
+        this.container.addChild(this.gr)
     }
 
     private calcDistance(a: USER.Point, b: USER.Point) {
@@ -323,7 +337,8 @@ export class Path {
             return this.divpath[0]
         }
 
-        const lenSortedPath = [...this.divpath].sort((a, b) => a.distanceFromStart - b.distanceFromStart)
+        // const lenSortedPath = [...this.divpath].sort((a, b) => a.distanceFromStart - b.distanceFromStart)
+        const lenSortedPath = [...this.divpath]
         const neerIndex = Search.lowerBound(lenSortedPath, distanceFromStart, ((l, r) => l.distanceFromStart < r))
         const prevWayPoint = this.divpath[neerIndex - 1] /* distanceFromStartよりちょっと短い */
         const nextWayPoint = this.divpath[neerIndex]     /* distanceFromStartよりちょっと長い */

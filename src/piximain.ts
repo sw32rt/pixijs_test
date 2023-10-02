@@ -7,7 +7,7 @@ import { Path } from './path.js';
 
 import * as Chart from 'chart.js'
 
-namespace app.global {
+export namespace app.global {
     export let pixiApp: PIXI.Application
     export let viewport: Viewport
     export let path: Path
@@ -238,3 +238,34 @@ function crateChart(chartCanvas: HTMLCanvasElement, cursorCanvas: HTMLCanvasElem
 
 }
 
+export function updateChart() {
+
+    const pathDataset: number[][] = []
+    pathDataset.push([])
+    pathDataset.push([])
+    pathDataset.push([])
+
+    for (let i = 0; i < app.global.path.totalLength; i++) {
+        let point = app.global.path.getPointByDistance(i)
+        let info = app.global.path.getClosestPointInfo(point)
+        const digDir = (info.direction * 180 / Math.PI)
+        const digradius = (info.radius * 180 / Math.PI)
+        const digcurvature = (info.curvature * 180 / Math.PI)
+        pathDataset[0].push(digDir)
+        pathDataset[1].push(digradius)
+        pathDataset[2].push(digcurvature)
+    }
+
+    let i = 0
+    app.global.charts.forEach(chart => {
+        // chart.chart.options.animation = false
+        chart.chart.data.datasets.forEach(dataset => {
+            dataset.data = pathDataset[i++]
+        });
+        chart.chart.update()
+    });
+
+
+
+
+}
